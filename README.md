@@ -11,7 +11,7 @@ The operations are very simple, and is designed to be incredibly minimilistic.
 * put(tableName, itemOrItems);
 * del(tableName, matchObjOrAr);
 
-### Example:
+### Complete Example (everything you need to know):
 ```javascript
 var jsonDB = require("./index.js");
 
