@@ -153,7 +153,7 @@ exports.DB = function()
         setup();
     };
 
-    this.set = function(tableName, itemOrItems)
+    this.put = function(tableName, itemOrItems)
     {
         // At least 2 args!! else throw
         if(arguments.length < 2)
@@ -189,11 +189,11 @@ exports.DB = function()
         saveToFile();
     };
 
-    this.get = function(tableName, matchObjOrAr, exactMatches)
+    this.get = function(tableName, matchObjOrAr, isSearch)
     {
         if(arguments.length < 1)
         {
-            error("Invalid arguments, you must use format db.get(<tableName>, <matchObjOrAr>, <exactMatches>)");
+            error("Invalid arguments, you must use format db.get(<tableName>, <matchObjOrAr>, <isSearch>)");
         }
         if(!tableExists(tableName))
         {
@@ -205,7 +205,7 @@ exports.DB = function()
             return copy(inMemoryDB[tableName].items);
         }
         // Get all matching exactly
-        if(!exactMatches)
+        if(!isSearch)
         {
             matchObjOrAr = sanatizeMatchObject(tableName, matchObjOrAr, true);
             // For each item

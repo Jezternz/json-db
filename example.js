@@ -1,18 +1,3 @@
-json-db
-=======
-
-A very simple JSON file DB. Written with simplicity in mind. This was written to create a very simple file based json store. The store is kept in memory to make it very fast to add / remove / get items and works synchronously. items are loaded from JSON when a DB Class is created, Item changes are persisted to disk (Asynchronously) when the DB is not busy.
-
-### API
-
-The operations are very simple, and is designed to be incredibly minimilistic.
-3 methods are available + constructor, being:
-* get(tableName, matchObjOrAr, isSearch);
-* put(tableName, itemOrItems);
-* del(tableName, matchObjOrAr);
-
-### Example:
-```javascript
 var jsonDB = require("./index.js");
 
 // Setup
@@ -64,14 +49,3 @@ db.del("recipes", ["1", {"name":"Wacky Chocolate Cake"}]);
 // Get all rows
 rowMatches = db.get("recipes");
 console.log("All Rows:\n", JSON.stringify(rowMatches, null, 4), "\n");
-```
-
-### Possible Improvements (order of priority):
-* Case insensitive search
-* Add limit and offset
-* Add order
-* Add search indexing
-* Maybe automatic indexing?
-
-### Releases
-0.1 - Basic working package
