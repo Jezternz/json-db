@@ -1,4 +1,3 @@
-
 json-db [![Build Status](https://travis-ci.org/Jezternz/json-db.svg?branch=master)](https://travis-ci.org/Jezternz/json-db)
 =======
 
@@ -75,5 +74,4 @@ console.log("All Rows:\n", JSON.stringify(rowMatches, null, 4), "\n");
 * Maybe automatic indexing?
 
 ### Releases
-0.1 - Basic working package
-0.2 - Adding test cases
+0.0.1 - Basic working package
