@@ -1,4 +1,5 @@
-json-db
+
+json-db [![Build Status](https://travis-ci.org/Jezternz/json-db.svg?branch=master)](https://travis-ci.org/Jezternz/json-db)
 =======
 
 A very simple JSON file DB. Written with simplicity in mind. This was written to create a very simple file based json store. The store is kept in memory to make it very fast to add / remove / get items and works synchronously. items are loaded from JSON when a DB Class is created, Item changes are persisted to disk (Asynchronously) when the DB is not busy.
