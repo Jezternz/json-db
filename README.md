@@ -75,3 +75,4 @@ console.log("All Rows:\n", JSON.stringify(rowMatches, null, 4), "\n");
 
 ### Releases
 0.1 - Basic working package
+0.2 - Adding test cases
