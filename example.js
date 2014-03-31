@@ -1,4 +1,4 @@
-var jsonDB = require("./index.js");
+var jsonDB = require("../index.js");
 
 // Setup
 var db = new jsonDB.DB({

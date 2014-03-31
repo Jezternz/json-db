@@ -244,21 +244,18 @@ exports.DB = function()
             error("Table '" + tableName + '" does not exist.');
         }
         matchObjOrAr = sanatizeMatchObject(tableName, matchObjOrAr, false);
-        var item, matchingIndices = [];
-        for(var i=0;i<inMemoryDB[tableName].items.length;i++)
-        {
-            var item = inMemoryDB[tableName].items[i];
-            // Compare with each searchObj
-            var match = matchObjOrAr.some(function(searchObj)
+        var matchingIndices = inMemoryDB[tableName].items
+            .map(function(item, i)
             {
-                // If any search values are contained in item values
-                return Object.keys(searchObj).some(function(compareKey){ return (item[compareKey]+"").indexOf(searchObj[compareKey]) !== -1; });
-            });
-            if(match)
-            {
-                matchingIndices.push(i);
-            }
-        };
+                // Compare with each searchObj
+                var match = matchObjOrAr.some(function(searchObj)
+                {
+                    // If any search values are contained in item values
+                    return Object.keys(searchObj).some(function(compareKey){ return (item[compareKey]+"").indexOf(searchObj[compareKey]) !== -1; });
+                });
+                return match ? i : -1;
+            })
+            .filter(function(indx){ return indx !== -1; });
         matchingIndices.reverse().forEach(function(indx)
         {
             inMemoryDB[tableName].items.splice(indx, 1);

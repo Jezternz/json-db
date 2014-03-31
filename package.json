@@ -1,0 +1,13 @@
+{
+    "name":"json-db",
+    "version":"0.0.1",
+    "description":"Json-db, Json array in-memory store, operations and local disk storage.",
+    "dependencies":
+    {
+        "mocha":"~1.18.2"
+    },
+    "scripts": 
+    {
+        "test": "mocha test.js"
+    }
+}
