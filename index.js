@@ -1,9 +1,32 @@
 var
     fs = require("fs");
 
-exports.DB = function()
+/* 
+
+TODO: 
+    * Deisnged for Uber Simplicitivity
+    * In readme emphasise the fact this is designed for a single process / script acess.
+    * Explain this is excelent for prototyping
+    * Maybe write a basic rest server, no auth. -- how to handel uploads?
+
+
+
+
+    json-db API:
+
+    var db = new JsonDB.DB({ "fileName": "db.json", "prettyJSON": false, "tables": { tableName: tableUniqueId, ... } });
+    
+    db.set(tableName, itemOrItems, { newOnly : false });
+
+    db.del(tableName, matchObjOrArr);
+
+    db.get(tableName, matchObjOrAr, { search: false, offset: 0, limit: -1 });
+
+*/
+
+module.exports = function()
 {
-    var options = {
+    var defaultOpts = {
         "fileName": "db.json",
         "prettyJSON": false,
         "tables": {}
@@ -11,13 +34,20 @@ exports.DB = function()
 
     var 
         _self = this,
+        options,
         fOptions = {"encoding": "utf8"},
         inMemoryDB = {},
         pendingSave = false,
         saving = false;
 
-    var saveToFile = function()
+    var saveToFile = function(sync)
     {
+        if(sync)
+        {
+            var data = options.prettyJSON ? JSON.stringify(inMemoryDB, null, "  ") : JSON.stringify(inMemoryDB);
+            fs.writeFileSync(options.fileName, data, fOptions);
+            return;
+        }
         if(saving)
         {
             pendingSave = true;
@@ -34,7 +64,7 @@ exports.DB = function()
                     pendingSave = false;
                     saveToFile();
                 }
-            });
+            }); 
         }
     };
 
@@ -45,12 +75,19 @@ exports.DB = function()
             if(fs.existsSync(options.fileName))
             {
                 var strDB = fs.readFileSync(options.fileName, fOptions);
-                inMemoryDB = JSON.parse(strDB);
+                if(strDB.trim().length>0)
+                {
+                    inMemoryDB = JSON.parse(strDB);
+                }
+                else
+                {
+                    inMemoryDB = {};
+                }
             }
         }
         catch(er)
         {
-            throw new Error("Failed to parse "+ options.fileName + " , error: "+ er);
+            error("Failed to parse "+ options.fileName + " , error: "+ er);
         }
     };
 
@@ -70,180 +107,157 @@ exports.DB = function()
     };
 
     // Ensure an array of searchObjects, also ensure every searchObject is an "object" (and convert to object from string if need be, do this using exactMatch)
-    var sanatizeMatchObject = function(tableName, matchObjOrAr, exactMatch)
+    var sanatizeMatchObject = function(tableName, matchObjOrAr)
     {
+        if(typeof matchObjOrAr === "undefined" || matchObjOrAr === false || matchObjOrAr === null)
+        {
+            return false;
+        }
         matchObjOrAr = Array.isArray(matchObjOrAr) ? matchObjOrAr : [matchObjOrAr];
+        if(matchObjOrAr.some(function(searchObj){ return typeof searchObj === "undefined"; }))
+        {
+            error("Invalid search object '" + JSON.stringify(searchObj) + "', of type '" + (typeof searchObj) + "', expected string or object.");
+        };
         return matchObjOrAr.map(function(searchObj)
         {
-            if(typeof searchObj === "string")
+            var newSearchObj = {};
+            if(typeof searchObj === "object")
             {
-                var temp = {};
-                if(exactMatch)
-                {
-                    temp[inMemoryDB[tableName].key] = searchObj;
-                }
-                else
-                {
-                    if(inMemoryDB[tableName].items.length > 0)
-                    {
-                        var firstItemKeys = Object.keys(inMemoryDB[tableName].items[0]);
-                        firstItemKeys.forEach(function(fIKey)
-                        {
-                            temp[fIKey] = searchObj;
-                        });
-                    }
-                }
-                return temp;
-            }
-            else if(typeof searchObj === "object")
-            {
-                // If looking for an exact match and is a complete object, only need to match unique key, nothing else, delete other keys.
-                if(exactMatch && typeof searchObj[inMemoryDB[tableName].key] !== "undefined")
-                {
-                    Object.keys(searchObj).forEach(function(sObjKey){
-                        if(inMemoryDB[tableName].key !== sObjKey)
-                        {
-                            delete searchObj[sObjKey];
-                        }
-                    });
-                }
                 Object.keys(searchObj).forEach(function(innerSearchKey)
                 {
-                    if(typeof searchObj[innerSearchKey] === "object")
+                    if(typeof searchObj[innerSearchKey] === "object" || !searchObj[innerSearchKey].toString)
                     {
                         error("Invalid search object '" + JSON.stringify(searchObj[innerSearchKey]) + "', of type '" + (typeof searchObj[innerSearchKey]) + "', expected string or object.");
                     }
                     else
                     {
-                        searchObj[innerSearchKey] = searchObj[innerSearchKey]+"";
+                        newSearchObj[innerSearchKey] = searchObj[innerSearchKey];
                     }
                 });
-            } 
+            }
             else
             {
-                error("Invalid search object '" + JSON.stringify(searchObj) + "', of type '" + (typeof searchObj) + "', expected string or object.");
+                newSearchObj[inMemoryDB[tableName].key] = searchObj;
             }
-            return searchObj;
+            return newSearchObj;
         });
     };
 
-    var setup = function()
-    {
-        loadFromFile();
-        Object.keys(options.tables)
-            .filter(function(tableName)
-            {
-                return (typeof inMemoryDB[tableName] === "undefined");
-            })
-            .forEach(function(tableName)
-            {
-                inMemoryDB[tableName] = { "items": [], "key": options.tables[tableName], "counter": 0 };
-            });
-    };
-
-    var constructor = function(opts)
-    {
-        Object.keys(options).forEach(function(optKey)
-        {
-            if(opts[optKey])
-            {
-                options[optKey] = opts[optKey];
-            }
-        });
-        setup();
-    };
-
-    this.put = function(tableName, itemOrItems)
-    {
-        // At least 2 args!! else throw
-        if(arguments.length < 2)
-        {
-            error("Invalid arguments, you must use format db.set(<tableName>, <itemOrItems>)");
-        }
-        if(!tableExists(tableName))
-        {
-            error("Table '" + tableName + '" does not exist.');
-        }
-        itemOrItems = Array.isArray(itemOrItems) ? itemOrItems : [itemOrItems];
+    var addItems = function(tableName, itemOrItems)
+    {        
         var keyName = inMemoryDB[tableName].key;
-        itemOrItems
-            .forEach(function(newItem)
+        var arrayOut = [];
+        // Update & Add
+        itemOrItems.forEach(function(newItem)
+        {
+            if(typeof newItem[keyName] === "undefined")
+            {
+                // Find a new Id
+                do
+                {
+                    newItem[keyName] = (inMemoryDB[tableName].indexCounter++);
+                }
+                while(inMemoryDB[tableName].indices.indexOf(newItem[keyName].toString()) !== -1);
+            }
+            if(inMemoryDB[tableName].indices.indexOf(newItem[keyName].toString()) !== -1)
             {
                 var match = inMemoryDB[tableName].items.filter(function(row){ return row[keyName] === newItem[keyName]; }).pop();
-                if(match)
+                Object.keys(newItem).forEach(function(newItemKey)
                 {
-                    Object.keys(newItem).forEach(function(newItemKey)
-                    {
-                        match[newItemKey] = newItem[newItemKey];
-                    });
-                }
-                else
-                {
-                    if(typeof newItem[keyName] === "undefined")
-                    {
-                        newItem[keyName] = inMemoryDB[tableName].counter++;
-                    }
-                    inMemoryDB[tableName].items.push(copy(newItem));
-                }
-            });
-        saveToFile();
+                    match[newItemKey] = newItem[newItemKey];
+                });
+                arrayOut.push(match);
+            }
+            else
+            {
+                inMemoryDB[tableName].indices.push(newItem[keyName].toString());
+                inMemoryDB[tableName].items.push(copy(newItem));
+                arrayOut.push(newItem);
+            }
+        });
+        return copy(arrayOut);
+    }
+
+    var orderArrayBy = function(orderArray, orderByField, orderAsc)
+    {
+        if(orderAsc)
+        {
+            return orderArray.sort(function(a,b){ return a.name > b.name ? 1 : -1; });
+        }
+        else
+        {
+            return orderArray.sort(function(a, b){ return a.name > b.name ? -1 : 1; });
+        }
     };
 
-    this.get = function(tableName, matchObjOrAr, isSearch)
+    var offsetAndLimitArrayBy = function(matchingItems, offset, limit)
     {
-        if(arguments.length < 1)
+        var offset = typeof offset === "number" ? offset : 0;
+        var limit = typeof limit === "number" ? limit : -1;
+        if(limit !== -1)
         {
-            error("Invalid arguments, you must use format db.get(<tableName>, <matchObjOrAr>, <isSearch>)");
+            return matchingItems.slice(offset, limit);
         }
-        if(!tableExists(tableName))
+        else
         {
-            error("Table '" + tableName + '" does not exist.');
+            return matchingItems.slice(offset);
         }
-        // Get all in table
-        if(arguments.length === 1)
+    };
+
+    var findItems = function(tableName, matchObjOrAr, opts)
+    {
+        var matchingItems;
+        if(matchObjOrAr === false)
         {
-            return copy(inMemoryDB[tableName].items);
+            matchingItems = inMemoryDB[tableName].items;
         }
-        // Get all matching exactly
-        if(!isSearch)
+        else if(opts.exactMatch)
         {
-            matchObjOrAr = sanatizeMatchObject(tableName, matchObjOrAr, true);
-            // For each item
-            return copy(inMemoryDB[tableName].items.filter(function(item)
+            matchingItems = inMemoryDB[tableName].items.filter(function(item)
             {
                 // Compare with each searchObj
                 return matchObjOrAr.some(function(searchObj)
                 {
-                    // If all search values match item values
-                    return Object.keys(searchObj).every(function(compareKey){ return (item[compareKey]+"") === searchObj[compareKey]; });
+                    // If any search values are contained in item values
+                    return Object.keys(searchObj).some(function(compareKey)
+                    { 
+                        return item[compareKey] + "" === searchObj[compareKey] + ""; 
+                    });
                 });
-            }));
-        }
-        // Get search matches
-        matchObjOrAr = sanatizeMatchObject(tableName, matchObjOrAr, false);
-        // For each item
-        return copy(inMemoryDB[tableName].items.filter(function(item)
-        {
-            // Compare with each searchObj
-            return matchObjOrAr.some(function(searchObj)
-            {
-                // If any search values are contained in item values
-                return Object.keys(searchObj).some(function(compareKey){ return (item[compareKey]+"").indexOf(searchObj[compareKey]) !== -1; });
             });
-        }));
+        }
+        else
+        {
+            matchingItems = inMemoryDB[tableName].items.filter(function(item)
+            {
+                // Compare with each searchObj
+                return matchObjOrAr.some(function(searchObj)
+                {
+                    // If any search values are contained in item values
+                    return Object.keys(searchObj).some(function(compareKey)
+                    { 
+                        return (
+                            item[compareKey] === searchObj[compareKey] || 
+                            (item[compareKey]+"").indexOf(searchObj[compareKey]) !== -1
+                        ); 
+                    });
+                });
+            });
+        }
+        if(typeof opts.orderBy === "string" && opts.orderBy.length > 0)
+        {
+            matchingItems = orderArrayBy(matchingItems, opts.orderBy, !!opts.orderAscending);
+        }
+        if(typeof opts.offset === "number" || typeof opts.limit === "number")
+        {
+            matchingItems = offsetAndLimitArrayBy(matchingItems, opts.offset, opts.limit);
+        }
+        return copy(matchingItems);
     };
 
-    this.del = function(tableName, matchObjOrAr)
+    var removeItems = function(tableName, matchObjOrAr)
     {
-        if(arguments.length < 2)
-        {
-            error("Invalid arguments, you must use format db.del(<tableName>, <matchObjOrAr>)");
-        }
-        if(!tableExists(tableName))
-        {
-            error("Table '" + tableName + '" does not exist.');
-        }
-        matchObjOrAr = sanatizeMatchObject(tableName, matchObjOrAr, false);
+        var arrayOut = [];
         var matchingIndices = inMemoryDB[tableName].items
             .map(function(item, i)
             {
@@ -258,11 +272,141 @@ exports.DB = function()
             .filter(function(indx){ return indx !== -1; });
         matchingIndices.reverse().forEach(function(indx)
         {
-            inMemoryDB[tableName].items.splice(indx, 1);
+            arrayOut = arrayOut.concat(inMemoryDB[tableName].items.splice(indx, 1));
         });
-        saveToFile();
+        return copy(arrayOut);
     };
 
+    // db = new JsonDB({ "fileName": <fileName>, "prettyJSON": <bool(false)>, "tables": { <setName>: <setUniqueFieldKey>, ... } });
+    var constructor = function(opts)
+    {
+        options = copy(defaultOpts);
+        inMemoryDB = {};
+        pendingSave = false;
+
+        opts = typeof opts === "object" ? opts : {};
+
+        Object.keys(opts).forEach(function(optKey)
+        {
+            if(typeof options[optKey] !== "undefined")
+            {
+                options[optKey] = opts[optKey];
+            }
+            else
+            {
+                error("Unknown setting '" + optKey + "' * Note setting names are case sensitive.");
+            }
+        });        
+
+        loadFromFile();
+
+        Object.keys(options.tables)
+            .filter(function(tableName)
+            {
+                return (typeof inMemoryDB[tableName] === "undefined");
+            })
+            .forEach(function(tableName)
+            {
+                inMemoryDB[tableName] = { "items": [], "indices": [], "key": options.tables[tableName], "indexCounter": 0 };
+            });
+
+        saveToFile(true);
+    };
+
+    // db.set(<tableName>, <itemOrArray>, { "newOnly" : <bool(false)> });
+    this.set = function(tableName, itemOrItems, opts)
+    {
+        // At least 2 args!! else throw
+        if(arguments.length < 2)
+        {
+            error("Invalid arguments, you must use format db.update(<tableName>, <itemOrItems>, <acceptNewItems>)");
+        }
+        if(!tableExists(tableName))
+        {
+            error("Table '" + tableName + '" does not exist.');
+        }
+        opts = opts || {};
+        opts.acceptNewItems = typeof opts.acceptNewItems === "boolean" ? opts.acceptNewItems : true;
+        itemOrItems = Array.isArray(itemOrItems) ? itemOrItems : [itemOrItems];
+        itemOrItems = itemOrItems.filter(function(item){ return typeof item === "object" && item !== null; });
+        if(itemOrItems.length === 0)
+        {
+            // Silently do not set if there are no objects that are objects.
+            return;
+        }
+        var keyName = inMemoryDB[tableName].key;
+        if(!opts.acceptNewItems)
+        {
+            if(itemOrItems.some(function(item){ return (inMemoryDB[tableName].indices.indexOf(item[keyName].toString()) !== -1); }))
+            {
+                error("One or more of the objects for update did not exist, and newOnly was set to false.");
+            }
+        }
+        var addedItems = addItems(tableName, itemOrItems);
+        saveToFile();
+        return addedItems;
+    }
+
+    // db.get(<tableName>, <matchObjOrArray>, { "exactMatch": <bool(false)>, caseSensitive": <bool(true)>, "orderBy": <fieldName(null)>, "orderAscending": <bool(false)>, "offset": <number(0)>, "limit": <number(-1)> });
+    this.get = function(tableName, matchObjOrAr, opts)
+    {
+        if(arguments.length < 1)
+        {
+            error("Invalid arguments, you must use format db.get(<tableName>, <matchObjOrAr>)");
+        }
+        if(!tableExists(tableName))
+        {
+            error("Table '" + tableName + '" does not exist.');
+        }
+
+        // setup default options
+        opts = opts || {};
+        opts.exactMatch = typeof opts.exactMatch === "boolean" ? opts.exactMatch : false;
+        opts.caseSensitive = typeof opts.caseSensitive === "boolean" ? opts.caseSensitive : false;
+        opts.orderBy = typeof opts.orderBy === "string" ? opts.orderBy : null;
+        opts.offset = typeof opts.offset === "number" ? opts.offset : 0;
+        opts.limit = typeof opts.limit === "number" ? opts.limit : -1;
+
+        // if supplying a bunch of indexes, search for exact matches.
+        if(typeof matchObjOrAr === "string" || (Array.isArray(matchObjOrAr) && typeof matchObjOrAr[0] === "string"))
+        {
+            opts.exactMatch = true;
+        }
+
+        // Get search matches
+        matchObjOrAr = sanatizeMatchObject(tableName, matchObjOrAr);
+        return findItems(tableName, matchObjOrAr, opts);
+    };
+
+    // db.del(<tableName>, <matchObjOrArray>);
+    this.del = function(tableName, matchObjOrAr)
+    {
+        if(arguments.length < 1)
+        {
+            error("Invalid arguments, you must use format db.del(<tableName>, <matchObjOrAr>)");
+        }
+        if(!tableExists(tableName))
+        {
+            error("Table '" + tableName + '" does not exist.');
+        }
+        var removedItems;
+        if(arguments.length < 2)
+        {
+            // Do a clear of the table, no matchObjOrAr was set
+            removedItems = inMemoryDB[tableName].items;
+            inMemoryDB[tableName].items = [];
+            inMemoryDB[tableName].indices = [];
+            inMemoryDB[tableName].indexCounter = 0;
+        }
+        else
+        {
+            matchObjOrAr = sanatizeMatchObject(tableName, matchObjOrAr);
+            removedItems = removeItems(tableName, matchObjOrAr);
+        }
+        saveToFile();
+        return removedItems;
+    };
+    
     constructor.apply(this, arguments);
 
 };

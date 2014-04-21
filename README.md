@@ -1,78 +1,39 @@
 json-db
 =======
 
-A very simple JSON file DB. Written with simplicity in mind. This was written to create a very simple file based json store. The store is kept in memory to make it very fast to add / remove / get items and works synchronously. items are loaded from JSON when a DB Class is created, Item changes are persisted to disk (Asynchronously) when the DB is not busy.
+A VERY simple JSON file DB. This was created because I wanted a very simple json storage, that did not rely on a database being installed of any sort. I also wanted the ability to easily export or read as JSON.
+
+This was designed with two use cases in mind. The first being for prototyping sites, the second being for small sites that have few users or at the very least where data is not changed frequently.
+
+The store is kept in memory to make it very fast to add / remove / get items and works synchronously. Items are loaded from JSON when a DB Class is constructed, Item changes are persisted to disk asynchronously. All items stored in the database, are stored in 'tables', which are essentially sets. sets have no schema, but must have one field for a unique key (that must not be of object type).
+
+Notes: 
+* Being in memory, this will always take up memory equal to the amount stored in the DB. This is not designed for millions of records being accessed all the time, but should be fine for thousands.
+* This is also presently CPU heavy, as all operations are done in plain functional JS, this could be drastically improved by a C++ implementation.
+* Does not currently support concurrent access.
 
 ### API
 
-The operations are very simple, and is designed to be incredibly minimilistic.
-3 methods are available + constructor, being:
-* get(tableName, matchObjOrAr, isSearch);
-* put(tableName, itemOrItems);
-* del(tableName, matchObjOrAr);
+The operations are very simple.
+* db = new JsonDB({ "fileName": <fileName>, "prettyJSON": <bool(false)>, "tables": { <setName>: <setUniqueFieldKey>, ... } });
+* [itemsAffected] = db.set(<tableName>, <itemOrArray>, { "throwOnDuplicate" : <bool(false)> });
+* [itemsAffected] = db.del(<tableName>, <matchObjOrArray>);
+* [itemMatches] = db.get(<tableName>, <matchObjOrArray>, { "exactMatch": <bool(false)>, caseSensitive": <bool(true)>, "orderBy": <fieldName(null)>, "orderAscending": <bool(false)>, "offset": <number(0)>, "limit": <number(-1)> });
+
+where <matchObjOrArray> is one of:
+* Single or array of primary keys in the set
+* Single or array of objects to match against, eg: { <fieldName>:<matchValue>, <fieldName2>:<matchValue2>} means retrieve all values where items (fieldName contains matchValue or fieldName2 contains matchValue2)
 
 ### Complete Example (everything you need to know):
-```javascript
-var jsonDB = require("./index.js");
+Hopefully the API is pretty self-explanatory, but if you want a examples, checkout example.js
 
-// Setup
-var db = new jsonDB.DB({
-    // Name of file db, defaults to "db.json"
-    "fileName": "super-db.json",  
-    // Whether to store the JSON in human readable form, defaults to false
-    "prettyJSON": true,  
-    // An object containing key:value where tableName:tableUniqueKeyName
-    "tables": 
-    {
-        "recipes":"recipeId",
-        "ingredients":"ingredientId"
-    }  
-});
-
-// Add recipes
-var recipeList = [
-    { "recipeId": "0", "name": "Shaking Beef" },
-    { "recipeId": "1", "name": "Spam Sushi" },
-    { "recipeId": "2", "name": "Spiny Lobster In Crazy Water" },
-    { "recipeId": "3", "name": "Wacky Chocolate Cake" }
-];
-db.put("recipes", recipeList);
-
-// Update recipe name where id is '1'
-db.put("recipes", [
-    { "recipeId": "1", "name": "Festive Nuts Cake" }
-]);
-
-// Delete "Shaking Beef" row 0 in original put
-db.del("recipes", recipeList[0]);
-
-// Get Rows that have an exact name of "Wacky Chocolate Cake"
-var rowMatches = db.get("recipes", { "name": "Wacky Chocolate Cake" });
-console.log("Rows with exact name 'Wacky Chocolate Cake':\n", JSON.stringify(rowMatches, null, 4), "\n");
-
-// Get all Rows that contain the word Cake in their name
-rowMatches = db.get("recipes", { "name": "Cake" }, true);
-console.log("Rows with 'cake' in their name:\n", JSON.stringify(rowMatches, null, 4), "\n");
-
-// Get all Rows with id === 1
-rowMatches = db.get("recipes", "1");
-console.log("Rows with '1' as id:\n", JSON.stringify(rowMatches, null, 4), "\n");
-
-// Can also use a list of matching criteria, and combine id with other custom property names
-db.del("recipes", ["1", {"name":"Wacky Chocolate Cake"}]);
-
-// Get all rows
-rowMatches = db.get("recipes");
-console.log("All Rows:\n", JSON.stringify(rowMatches, null, 4), "\n");
-```
-
-### Possible Improvements (order of priority):
-* Case insensitive search
-* Add limit and offset
-* Add order
-* Add search indexing
-* Maybe automatic indexing?
+### Possible Improvements:
+* Possibly add ability to index columns, speed up search, or even automatically index popular searches?
+* Write plugin as a C++ plugin.
+* Consider concurrency (multiple processes access the DB) - locking? 
+* Recover from process end (maybe save synchronously when process is going to end)
 
 ### Releases
 0.1 - Basic working package
 0.2 - Adding test cases
+0.3 - Added many more test cases, updated API and optional search params 
