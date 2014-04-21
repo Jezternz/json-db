@@ -24,7 +24,7 @@ where <matchObjOrArray> is one of:
 * Implementation does not currently support concurrent access.
 
 ### Example
-Hopefully the API is pretty self-explanatory, but if you want a examples, checkout example.js
+Hopefully the API is pretty self-explanatory, for basic examples refer to example.js, for more advanced examples refer to test.js
 
 ### Possible Improvements:
 * Write as a C++ plugin to decrease CPU load.
