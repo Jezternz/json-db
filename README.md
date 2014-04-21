@@ -1,4 +1,4 @@
-json-db
+json-db [![Build Status](https://travis-ci.org/Jezternz/json-db.svg?branch=master)](https://travis-ci.org/Jezternz/json-db)
 =======
 
 A VERY simple JSON file DB. This was created because I wanted a very simple json storage, that did not rely on a database being installed of any sort. I also wanted the ability to easily export or read as JSON.
