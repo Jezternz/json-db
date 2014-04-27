@@ -1,8 +1,8 @@
 /*
     
-    JsonDB (Local JSON storage)
+    LocalJsonDB (Local JSON storage)
 
-    https://github.com/Jezternz/json-db
+    https://github.com/Jezternz/localjsondb
     by Joshua McLauchlan 2014
 
 */

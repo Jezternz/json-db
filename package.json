@@ -1,7 +1,7 @@
 {
-    "name":"json-db",
+    "name":"localjsondb",
     "version":"0.0.4",
-    "main":"jsondb.js",
+    "main":"localjsondb.js",
     "description":"Json-db, Basic Json storage in Sets with operations for adding, removing and searching. Also included a simple REST API interface extension for express.",
     "dependencies":
     {

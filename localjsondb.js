@@ -1,14 +1,14 @@
 /*
     
-    JsonDB (Local JSON storage)
+    LocalJsonDB (Local JSON storage)
 
-    https://github.com/Jezternz/json-db
+    https://github.com/Jezternz/localjsondb
     by Joshua McLauchlan 2014
 
 */
 
 var
-    expressJsonDB = require("./jsondb-express.js"),
+    expressJsonDB = require("./localjsondb-express.js"),
     fs = require("fs");
 
 module.exports = function()
@@ -300,7 +300,7 @@ module.exports = function()
         return copy(matchingItems);
     };
 
-    // db = new JsonDB({ "fileName": <fileName>, "prettyJSON": <bool(false)>, "tables": { <setName>: <setUniqueFieldKey>, ... } });
+    // db = new LocalJsonDB({ "fileName": <fileName>, "prettyJSON": <bool(false)>, "tables": { <setName>: <setUniqueFieldKey>, ... } });
     var constructor = function(opts)
     {
         options = copy(defaultOpts);

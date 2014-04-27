@@ -1,16 +1,16 @@
 /*
     
-    JsonDB (Local JSON storage)
+    LocalJsonDB (Local JSON storage)
 
-    https://github.com/Jezternz/json-db
+    https://github.com/Jezternz/localjsondb
     by Joshua McLauchlan 2014
 
 */
 
-var JsonDB = require("../jsondb.js");
+var LocalJsonDB = require("../localjsondb.js");
 
 // Setup
-var db = new JsonDB({
+var db = new LocalJsonDB({
     // Name of file db, defaults to "db.json"
     "fileName": "example-basic-db.json",  
     // Whether to store the JSON in human readable form, defaults to false

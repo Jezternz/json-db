@@ -1,19 +1,19 @@
 /*
     
-    JsonDB (Local JSON storage)
+    LocalJsonDB (Local JSON storage)
 
-    https://github.com/Jezternz/json-db
+    https://github.com/Jezternz/localjsondb
     by Joshua McLauchlan 2014
 
 */
 
-/* Unit Tests for json-db using Mocha */
+/* Unit Tests for localjsondb using Mocha */
 
 var 
     path = require("path"),
     assert = require("assert"),
     fs = require("fs"),
-    JsonDB = require("../jsondb.js");
+    LocalJsonDB = require("../localjsondb.js");
 
 var
     dir = __dirname,
@@ -34,7 +34,7 @@ it("Tests are prepared correctly", function()
     assert(fs.existsSync(populatedDBName), "Missing copy of pre-populated test file '" + populatedDBName + "'!");
 });
 
-describe('JsonDB', function() 
+describe('LocalJsonDB', function() 
 {
     var newDBName = function()
     {
@@ -56,31 +56,31 @@ describe('JsonDB', function()
 
     /* 
         Test
-        db = new JsonDB({ "fileName": <fileName>, "prettyJSON": <bool(false)>, "tables": { <setName>: <setUniqueFieldKey>, ... } });
+        db = new LocalJsonDB({ "fileName": <fileName>, "prettyJSON": <bool(false)>, "tables": { <setName>: <setUniqueFieldKey>, ... } });
     */
 
-    describe('JsonDB()', function()
+    describe('LocalJsonDB()', function()
     {
         it("should create an accessable db in memory", function()
         {
-            var db = new JsonDB();
+            var db = new LocalJsonDB();
             assert(fs.existsSync(defaultDBName), "default db filename does not exist");
         });
         it("should load setup if it is passed in", function()
         {
             var testDBName = newDBName();
-            var db = new JsonDB({ "fileName": testDBName });
+            var db = new LocalJsonDB({ "fileName": testDBName });
             assert(fs.existsSync(testDBName), "db filename does not exist");
         });
         it("should load db from a previous file", function()
         {
-            var db = new JsonDB({ "fileName": populatedDBName, "prettyJSON": true });
+            var db = new LocalJsonDB({ "fileName": populatedDBName, "prettyJSON": true });
             assert.equal(db.get("ingredients").length, 5, "Did not retrieve 5 records from '" + populatedDBName + "'");
         });
         it("should create a db file if none existed", function()
         {
             var testDBName = newDBName();
-            var db = new JsonDB({ "fileName": testDBName });
+            var db = new LocalJsonDB({ "fileName": testDBName });
             assert(fs.existsSync(testDBName), "Non-existant database was not created");
         });
         it("should create a db file that is prettyJSONed", function()
@@ -92,13 +92,13 @@ describe('JsonDB', function()
 
             var opts = { "fileName": testDBName, "prettyJSON": false, "tables": { "randomTable": "randomId" } };
 
-            var db = new JsonDB(opts);
+            var db = new LocalJsonDB(opts);
             var countA = (fs.readFileSync(testDBName, fOptions).match(/\r\n|\r|\n/g) || []).length;
 
             opts.prettyJSON = true;
             opts.fileName = testDB2Name;
 
-            var db2 = new JsonDB(opts);
+            var db2 = new LocalJsonDB(opts);
             var countB = (fs.readFileSync(testDB2Name, fOptions).match(/\r\n|\r|\n/g) || []).length;
 
             // Test if they differ in number of newlines.
@@ -108,8 +108,8 @@ describe('JsonDB', function()
         {
             var testDBName = newDBName();
             assert.doesNotThrow(function(){
-                var db = new JsonDB({ "fileName": testDBName, "tables": { "testTable": "testId", "testTable2": "testId", "testTable3": "testId" } });
-                var db2 = new JsonDB({ "fileName": testDBName });
+                var db = new LocalJsonDB({ "fileName": testDBName, "tables": { "testTable": "testId", "testTable2": "testId", "testTable3": "testId" } });
+                var db2 = new LocalJsonDB({ "fileName": testDBName });
                 db2.get("testTable");
                 db2.get("testTable2");
                 db2.get("testTable3");
@@ -127,7 +127,7 @@ describe('JsonDB', function()
         
         it("should fail if db does not exist", function()
         {
-            var db = new JsonDB({ "fileName": newDBName() });
+            var db = new LocalJsonDB({ "fileName": newDBName() });
             assert.throws(function()
             {
                 db.set("nonExistantTable", { "rowId": 0 });
@@ -135,7 +135,7 @@ describe('JsonDB', function()
         });
         it("should fail if row already exists and throwOnDuplicate is true", function()
         {
-            var db = new JsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
+            var db = new LocalJsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
             db.set("randomTable", { "randomTableId": 0 });
             assert.throws(function()
             {
@@ -144,7 +144,7 @@ describe('JsonDB', function()
         });
         it("should silently fail if no item or items", function()
         {
-            var db = new JsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
+            var db = new LocalJsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
             db.del("randomTable");
             db.set("randomTable", true);
             db.set("randomTable", false);
@@ -156,14 +156,14 @@ describe('JsonDB', function()
         });
         it("should insert a single item", function()
         {            
-            var db = new JsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
+            var db = new LocalJsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
             assert.equal(db.get("randomTable").length, 0, "Creating an empty table, should result in 0 items");
             db.set("randomTable", { "randomTableId": 0, "randomObjectProperty": "1" });
             assert.equal(db.get("randomTable").length, 1, "Adding a single item, should result in a table with one item.");
         });
         it("should insert multiple items", function()
         {            
-            var db = new JsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
+            var db = new LocalJsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
             assert.equal(db.get("randomTable").length, 0, "Creating an empty table, should result in 0 items");
             var items = [{ "randomObjectProperty": "1" }, { "randomObjectProperty": "2" }, { "randomObjectProperty": "3" }, { "randomObjectProperty": "4" }, { "randomObjectProperty": "5" }];
             db.set("randomTable", items);
@@ -171,7 +171,7 @@ describe('JsonDB', function()
         });
         it("Inserting objects with properties and retrieving these, should result in the same properties coming out", function()
         {   
-            var db = new JsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
+            var db = new LocalJsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
             var itemsIn = [{ "property1": "1" }, { "PROPERTY2": 2 }, { "propertyBool": true }, { "propertyString": "ABC_123" }, { "propertyObject": {"A":1, "B":2, "C":{"D":4}} }];
             db.set("randomTable", itemsIn);
             var itemsOut = db.get("randomTable");
@@ -188,7 +188,7 @@ describe('JsonDB', function()
         });
         it("should update a single item", function()
         {
-            var db = new JsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
+            var db = new LocalJsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
             var itemsIn = [{ "randomTableId": 0, "property1": "1" }, { "randomTableId": 1, "property1": "2" }, { "randomTableId": 2, "property1": "3" }];
             db.set("randomTable", itemsIn);
             db.set("randomTable", { "randomTableId": 1, "property1": "A" });
@@ -201,7 +201,7 @@ describe('JsonDB', function()
         });
         it("should update multiple items", function()
         {
-            var db = new JsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
+            var db = new LocalJsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
             var itemsIn = [{ "randomTableId": 0, "property1": "1" }, { "randomTableId": 1, "property1": "2" }, { "randomTableId": 2, "property1": "3" }];
             var itemsUpdate = [{ "randomTableId": 0, "property1": "5" }, { "randomTableId": 1, "property1": "6" }, { "randomTableId": 2, "property1": "7" }];
             db.set("randomTable", itemsIn);
@@ -214,7 +214,7 @@ describe('JsonDB', function()
         });
         it("should return items that have been updated or added", function()
         {
-            var db = new JsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
+            var db = new LocalJsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
             var rows = [{ "randomTableId": "1", "randomField": "2"}, { "randomTableId": "3", "randomField": "4"}];
             var rows2 = db.set("randomTable", rows);
             rows.sort(function(a, b){ return (JSON.stringify(a)+"") > (JSON.stringify(b)+""); });
@@ -232,7 +232,7 @@ describe('JsonDB', function()
     {
         it("should fail if db does not exist", function()
         {
-            var db = new JsonDB({ "fileName": newDBName() });
+            var db = new LocalJsonDB({ "fileName": newDBName() });
             assert.throws(function()
             {
                 db.del("nonExistantTable", { "rowId": 0 });
@@ -240,19 +240,19 @@ describe('JsonDB', function()
         });
         it("should remove item from db", function()
         {
-            var db = new JsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
+            var db = new LocalJsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
             db.set("randomTable", { "randomTableId": 0 });
             db.del("randomTable", { "randomTableId": 0 });
             assert.equal(db.get("randomTable").length, 0, "Delete did not clear db using matchObject");
 
-            db = new JsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
+            db = new LocalJsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
             db.set("randomTable", { "randomTableId": 0 });
             db.del("randomTable", 0);
             assert.equal(db.get("randomTable").length, 0, "Delete did not clear db using (numberic) index");
         });
         it("should allow item add, remove, add from db", function()
         {
-            var db = new JsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
+            var db = new LocalJsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
             db.set("randomTable", { "randomTableId": 0 });
             db.del("randomTable", { "randomTableId": 0 });
             db.set("randomTable", { "randomTableId": 0 });
@@ -260,18 +260,18 @@ describe('JsonDB', function()
         });
         it("should remove items from db", function()
         {
-            var db = new JsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
+            var db = new LocalJsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
             db.set("randomTable", [{ "randomTableId": 0 }, { "randomTableId": 1 }, { "randomTableId": 2 }]);
             db.del("randomTable", [{ "randomTableId": 1 }, { "randomTableId": 2 }]);
             assert.equal(db.get("randomTable").length, 1, "Delete did not clear multiple items from db.");
-            db = new JsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
+            db = new LocalJsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
             db.set("randomTable", [{ "randomTableId": 0 }, { "randomTableId": 1 }, { "randomTableId": 2 }]);
             db.del("randomTable", [1, 2]);
             assert.equal(db.get("randomTable").length, 1, "Delete did not clear multiple items from db using uniqueIds.");
         });
         it("should fail silently if item does not exist", function()
         {
-            var db = new JsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
+            var db = new LocalJsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
             db.set("randomTable", [{ "randomTableId": 0 }, { "randomTableId": 1 }, { "randomTableId": 2 }]);
             assert.doesNotThrow(function()
             {
@@ -283,14 +283,14 @@ describe('JsonDB', function()
         });
         it("should clear complete table if no second paramater is passed in.", function()
         {
-            var db = new JsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
+            var db = new LocalJsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
             db.set("randomTable", [{ "randomTableId": 0 }, { "randomTableId": 1 }, { "randomTableId": 2 }]);
             db.del("randomTable");
             assert.equal(db.get("randomTable").length, 0, "expected del(table) to clear all items in table, but some were not cleared.");
         });
         it("should return items that have been deleted", function()
         {
-            var db = new JsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
+            var db = new LocalJsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
             var originalArray = [{ "randomTableId": "1", "randomField": "2"}, { "randomTableId": "3", "randomField": "4"}, { "randomTableId": "5", "randomField": "6"}];
             db.set("randomTable", originalArray);
             var delItems = db.del("randomTable", ["1", "3"]);
@@ -310,7 +310,7 @@ describe('JsonDB', function()
     {
         var populatedDB = function()
         {
-            return new JsonDB({ "fileName": populatedDBName, "prettyJSON": true });
+            return new LocalJsonDB({ "fileName": populatedDBName, "prettyJSON": true });
         };
 
         it("should fail if db does not exist", function()

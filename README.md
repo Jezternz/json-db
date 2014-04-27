@@ -1,4 +1,4 @@
-json-db [![Build Status](https://travis-ci.org/Jezternz/json-db.svg?branch=master)](https://travis-ci.org/Jezternz/json-db)
+localjsondb [![Build Status](https://travis-ci.org/Jezternz/localjsondb.svg?branch=master)](https://travis-ci.org/Jezternz/localjsondb)
 =======
 
 A very simple local json file database for Node.js that can be used for prototyping and small projects. 
@@ -13,7 +13,7 @@ Tables are essentially just lists of JSON objects. The rows are schemaless and r
 
 ### Node.js API
 ```javascript
-db = new JsonDB({ "fileName": <fileName>, "prettyJSON": <bool(false)>, "tables": { <setName>: <setUniqueFieldKey>, ... } });
+db = new LocalJsonDB({ "fileName": <fileName>, "prettyJSON": <bool(false)>, "tables": { <setName>: <setUniqueFieldKey>, ... } });
 
 [itemsAffected] = db.set(<tableName>, <itemOrArray>, { "throwOnDuplicate" : <bool(false)> });
 [itemsAffected] = db.del(<tableName>, <matchObjOrArray>);
