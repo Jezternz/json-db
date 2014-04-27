@@ -202,10 +202,18 @@ module.exports = function(jsonDB)
 {
     return function(req, res, next)
     {
-        var actionArgs = parseExpressInput.call(jsonDB, req, res);
-        if(actionArgs !== false)
+        try
         {
-            actions[actionArgs.method].call(jsonDB, actionArgs); 
+            var actionArgs = parseExpressInput.call(jsonDB, req, res);
+            if(actionArgs !== false)
+            {
+                actions[actionArgs.method].call(jsonDB, actionArgs); 
+            }
+        }
+        catch(er)
+        {
+            console.error(er);
+            args.sendResponse(500, responseMessage("Something went wrong with your request, please see server logs for more details.")); 
         }
     };
 };
