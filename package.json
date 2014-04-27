@@ -1,6 +1,6 @@
 {
     "name":"localjsondb",
-    "version":"0.0.4",
+    "version":"0.0.5",
     "main":"localjsondb.js",
     "description":"A very simple local json file database for Node.js that can be used for prototyping and small projects.",
     "keywords":["json", "local", "storage", "database", "rest"],

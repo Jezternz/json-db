@@ -452,11 +452,11 @@ module.exports = function()
     };
 
     // db.del(<tableName>, <matchObjOrArray>);
-    this.del = function(tableName, matchObjOrAr)
+    this.del = function(tableName, uniqueIdArray)
     {
         if(arguments.length < 1)
         {
-            error("Invalid arguments, you must use format db.del(<tableName>, <matchObjOrAr>)");
+            error("Invalid arguments, you must use format db.del(<tableName>, <uniqueIdArray>)");
         }
         if(!this._tableExists(tableName))
         {
@@ -465,7 +465,7 @@ module.exports = function()
         var removedItems;
         if(arguments.length < 2)
         {
-            // Do a clear of the table, no matchObjOrAr was set
+            // Do a clear of the table, no uniqueIdArray was set
             removedItems = inMemoryDB[tableName].items;
             inMemoryDB[tableName].items = [];
             inMemoryDB[tableName].indices = [];
@@ -473,7 +473,7 @@ module.exports = function()
         }
         else
         {
-            matchObjOrAr = sanatizeMatchObject(tableName, matchObjOrAr, { "exactMatch": true, "ignoreCase" : false });
+            var matchObjOrAr = sanatizeMatchObject(tableName, uniqueIdArray, { "exactMatch": true, "ignoreCase" : false });
             removedItems = removeItems(tableName, matchObjOrAr);
         }
         saveToFile();
