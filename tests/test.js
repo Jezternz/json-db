@@ -10,16 +10,18 @@
 /* Unit Tests for json-db using Mocha */
 
 var 
+    path = require("path"),
     assert = require("assert"),
     fs = require("fs"),
-    JsonDB = require("./jsondb.js");
+    JsonDB = require("../jsondb.js");
 
 var
-    dbFileNameTemplate = "test-db-{0}.json",
-    populatedDBNameOriginal = "test-db-populated.json",
-    populatedDBName = "test-db-populated-copy.json",
+    dir = __dirname,
+    dbFileNameTemplate = path.join(dir, "test-db-{0}.json"),
+    populatedDBNameOriginal = path.join(dir, "test-db-populated.json"),
+    populatedDBName = path.join(dir, "test-db-populated-copy.json"),
     defaultDBName = "db.json",
-    dbFileNames = ["db.json", "test-db-populated-copy.json"];
+    dbFileNames = [defaultDBName, populatedDBName];
 
 var 
     fOptions = {"encoding": "utf8"};

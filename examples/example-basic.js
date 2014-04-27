@@ -7,7 +7,7 @@
 
 */
 
-var JsonDB = require("./jsondb.js");
+var JsonDB = require("../jsondb.js");
 
 // Setup
 var db = new JsonDB({
@@ -56,7 +56,7 @@ console.log("Rows with '1' as id:\n", JSON.stringify(rowMatches, null, 4), "\n")
 rowMatches = db.get("recipes", { "name": "ginger" }, { "ignoreCase": true, "orderBy": "name", "orderAscending": true, "offset": 1, "limit": 2 });
 console.log("Rows with a name case insensitive match for 'ginger', ordered by name ascending, with an offset of 1 and a limit of 2.\n", JSON.stringify(rowMatches, null, 4), "\n");
 
-// Can also use a list of matching criteria, and combine id with other custom property names
+// Can also use a list of matching criteria, can either be a list of unique row id's or search objects as previously used.
 db.del("recipes", ["1", "3"]);
 console.log("Removing rows with id 1 and 3:\n");
 

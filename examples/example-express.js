@@ -11,7 +11,8 @@
 
 // Create our express web server
 var 
-    JsonDB = require("./jsondb.js"),
+    path = require("path"),
+    JsonDB = require("../jsondb.js"),
     express = require('express'),
     bodyParser = require('body-parser'),
     app = express();
@@ -21,7 +22,7 @@ var
 
 var db = new JsonDB({
     // Name of file db, defaults to "db.json"
-    "fileName": "example-express-db.json",  
+    "fileName": path.join(__dirname, "example-express-db.json"),  
     // Whether to store the JSON in human readable form, defaults to false
     "prettyJSON": true,  
     // An object containing key:value where tableName:tableUniqueKeyName
@@ -36,7 +37,7 @@ var db = new JsonDB({
 app.use(bodyParser.json());
 
 // Attach json-db REST handler to express.
-app.get('/', function(req, res, next){ res.sendfile("example-express-db-client.htm"); });
+app.get('/', function(req, res, next){ res.sendfile(path.join(__dirname, "example-express-db-client.htm")); });
 app.all('/api/*', db.expressRoute);
 
 // Start web server

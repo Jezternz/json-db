@@ -26,9 +26,9 @@ where <matchObjOrArray> is one of:
 ```
 
 ### Examples  
-*example-basic.js* - basic usage examples.  
-*test.js* - more advanced usage examples.  
-*example-express.js* - real use case example hosting the API using express, and an htm client to talk to it with.  
+*tests/test.js* - advanced usage examples.  
+*examples/example-basic.js* - basic usage examples.  
+*examples/example-express.js* - real use case example hosting the API using express, and an htm client to talk to it with.  
 
 ### Possible Improvements:
 * Write as a C++ plugin to decrease CPU load.
