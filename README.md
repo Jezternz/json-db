@@ -41,7 +41,7 @@ npm install express body-parser localjsondb
 node node_modules/localjsondb/examples/example-express.js
 ```
 Then browse to localhost:8080:  
-![LocalJsonDB example with express example](example.png)
+![LocalJsonDB example with express example](examples/express-example.png)
 
 ### Improvements
 * Write as a C++ plugin to decrease CPU load.
