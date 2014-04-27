@@ -35,6 +35,14 @@ where <matchObjOrArray> is one of:
 *examples/example-basic.js* - basic usage examples.  
 *examples/example-express.js* - real use case example hosting the rest api with express, and an html client to talk to it with.  
 
+### Run the express example:
+```
+npm install express body-parser localjsondb
+node node_modules/localjsondb/examples/example-express.js
+```
+Then browse to localhost:8080:  
+![LocalJsonDB example with express example](example.png)
+
 ### Improvements
 * Write as a C++ plugin to decrease CPU load.
 * Investigate ways to fix concurrency issues.
