@@ -10,8 +10,12 @@ The API includes only 3 operations (.get(), .set(), .del()), designed for basic 
 All operations work synchronously on the database in memory, and asynchonously save changes to a json file.
 
 Tables are essentially just lists of JSON objects. The rows are schemaless and require only a single field to be a unique key. The current implementation does not support concurrent access.
+### Installation
+```
+npm install localjsondb
+```
 
-### Node.js API
+### API
 ```javascript
 db = new LocalJsonDB({ "fileName": <fileName>, "prettyJSON": <bool(false)>, "tables": { <setName>: <setUniqueFieldKey>, ... } });
 
@@ -30,7 +34,7 @@ where <matchObjOrArray> is one of:
 *examples/example-basic.js* - basic usage examples.  
 *examples/example-express.js* - real use case example hosting the API using express, and an htm client to talk to it with.  
 
-### Possible Improvements:
+### Improvements
 * Write as a C++ plugin to decrease CPU load.
 * Investigate ways to fix concurrency issues.
 * In the actual search function, could count number of matches instead of returning on first match, to enable sort by relevance.
