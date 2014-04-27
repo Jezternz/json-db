@@ -44,13 +44,13 @@ Then browse to localhost:8080:
 ![LocalJsonDB example with express example](https://raw.githubusercontent.com/Jezternz/localjsondb/master/examples/express-example.png)
 
 ### Improvements
-* Write as a C++ plugin to decrease CPU load.
-* Investigate ways to fix concurrency issues.
-* In the actual search function, could count number of matches instead of returning on first match, to enable sort by relevance.
+* Write as a C++ plugin to improve performance beyond what Node.js can offer.
+* Investigate ways to allow concurrent access.
+* Improve search when sorting to sort by relevance.
 * Recover from process end (maybe save synchronously when process is going to end)
 
 ### Releases
 0.0.1 - Basic working package  
 0.0.2 - Adding test cases  
 0.0.3 - Added many more test cases, updated API and optional search params  
-0.0.51 - Updated to include a basic Express routing method.
+0.1.0 - First real stable (complete) release, publishing to npm.
