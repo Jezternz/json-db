@@ -1,11 +1,13 @@
 json-db [![Build Status](https://travis-ci.org/Jezternz/json-db.svg?branch=master)](https://travis-ci.org/Jezternz/json-db)
 =======
 
-A very simple JSON file Database for Node.js that can be used for prototyping and small projects. All operations work synchronously on the database in memory, and asynchonously save changes to a json file.
+A very simple local json file database for Node.js that can be used for prototyping and small projects. 
 
 ---
 
 The API includes only 3 operations (.get(), .set(), .del()), designed for basic addition, removal, retrieval and filtering with pagination. A helper method is also provided (.expressRouting()) that can be used as express middleware, this enables a simple REST service with get, post, put and delete operations corresponding to the methods previously mentioned. 
+
+All operations work synchronously on the database in memory, and asynchonously save changes to a json file.
 
 Tables are essentially just lists of JSON objects. The rows are schemaless and require only a single field to be a unique key. The current implementation does not support concurrent access.
 
