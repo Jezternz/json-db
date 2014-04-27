@@ -5,7 +5,7 @@ A very simple local json file database for Node.js that can be used for prototyp
 
 ---
 
-The API includes only 3 operations (.get(), .set(), .del()), designed for basic addition, removal, retrieval and filtering with pagination. A helper method is also provided (.expressRouting()) that can be used as express middleware, this enables a simple REST service with get, post, put and delete operations corresponding to the methods previously mentioned. 
+The API includes only 3 operations (.get(), .set(), .del()), designed for basic addition, removal, retrieval and filtering with pagination. A helper method is also provided (.expressRouting()) that can be used as express middleware, this enables a simple rest api service with get, post, put and delete operations corresponding to the methods previously mentioned. 
 
 All operations work synchronously on the database in memory, and asynchonously save changes to a json file.
 
@@ -13,6 +13,7 @@ Tables are essentially just lists of JSON objects. The rows are schemaless and r
 ### Installation
 ```
 npm install localjsondb
+npm install express body-parser // (optional - to use express with rest api)
 ```
 
 ### API
@@ -32,7 +33,7 @@ where <matchObjOrArray> is one of:
 ### Examples  
 *tests/test.js* - advanced usage examples.  
 *examples/example-basic.js* - basic usage examples.  
-*examples/example-express.js* - real use case example hosting the API using express, and an htm client to talk to it with.  
+*examples/example-express.js* - real use case example hosting the rest api with express, and an html client to talk to it with.  
 
 ### Improvements
 * Write as a C++ plugin to decrease CPU load.
