@@ -3,27 +3,33 @@
     "items": [
       {
         "ingredientId": 0,
-        "name": "Parsley"
+        "name": "Parsley",
+        "randomLetter":"d"
       },
       {
         "ingredientId": 1,
-        "name": "Sugar"
+        "name": "Sugar",
+        "randomLetter":"b"
       },
       {
         "ingredientId": 2,
-        "name": "Salt"
+        "name": "Salt",
+        "randomLetter":"a"
       },
       {
         "ingredientId": 3,
-        "name": "Lime"
+        "name": "Lime",
+        "randomLetter":"c"
       },
       {
         "ingredientId": 4,
-        "name": "Orange"
+        "name": "Orange",
+        "randomLetter":"e"
       }
     ],
     "key": "ingredientId",
-    "counter": 0
+    "indexCounter": 0,
+    "indices": ["-1","1","2","3","4"]
   },
   "recipes": {
     "items": [
@@ -89,6 +95,7 @@
       }
     ],
     "key": "recipeId",
-    "counter": 0
+    "indexCounter": 0,
+    "indices": ["0","1","10","11","12","13","14","2","3","4","5","6","7","8","9"]
   }
 }

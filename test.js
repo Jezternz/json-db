@@ -1,15 +1,25 @@
+/*
+    
+    JsonDB (Local JSON storage)
+
+    https://github.com/Jezternz/json-db
+    by Joshua McLauchlan 2014
+
+*/
+
 /* Unit Tests for json-db using Mocha */
 
 var 
     assert = require("assert"),
     fs = require("fs"),
-    JsonDB = require("./index.js");
+    JsonDB = require("./jsondb.js");
 
 var
     dbFileNameTemplate = "test-db-{0}.json",
-    populatedDBName = "test-db-populated.json",
+    populatedDBNameOriginal = "test-db-populated.json",
+    populatedDBName = "test-db-populated-copy.json",
     defaultDBName = "db.json",
-    dbFileNames = ["db.json"];
+    dbFileNames = ["db.json", "test-db-populated-copy.json"];
 
 var 
     fOptions = {"encoding": "utf8"};
@@ -17,7 +27,9 @@ var
 /**/
 it("Tests are prepared correctly", function()
 {
-    assert(fs.existsSync(populatedDBName), "Cannot complete tests! Missing pre-populated test db called '" + populatedDBName + "'");
+    assert(fs.existsSync(populatedDBNameOriginal), "Cannot complete tests! Missing pre-populated test db called '" + populatedDBNameOriginal + "'");
+    fs.writeFileSync(populatedDBName, fs.readFileSync(populatedDBNameOriginal));
+    assert(fs.existsSync(populatedDBName), "Missing copy of pre-populated test file '" + populatedDBName + "'!");
 });
 
 describe('JsonDB', function() 
@@ -236,6 +248,14 @@ describe('JsonDB', function()
             db.del("randomTable", 0);
             assert.equal(db.get("randomTable").length, 0, "Delete did not clear db using (numberic) index");
         });
+        it("should allow item add, remove, add from db", function()
+        {
+            var db = new JsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
+            db.set("randomTable", { "randomTableId": 0 });
+            db.del("randomTable", { "randomTableId": 0 });
+            db.set("randomTable", { "randomTableId": 0 });
+            assert.equal(db.get("randomTable").length, 1, "Addition, Deletion followed by another Addition did not correctly end with one object.");
+        });
         it("should remove items from db", function()
         {
             var db = new JsonDB({ "fileName": newDBName(), "tables": { "randomTable" : "randomTableId" } });
@@ -281,7 +301,7 @@ describe('JsonDB', function()
 
     /* 
         Test
-        db.get(<tableName>, <matchObjOrArray>, { "exactMatch": <bool(false)>, caseSensitive": <bool(true)>, "orderBy": <fieldName(null)>, "orderAscending": <bool(false)>, "offset": <number(0)>, "limit": <number(-1)> });
+        db.get(<tableName>, <matchObjOrArray>, { "exactMatch": <bool(false)>, "ignoreCase": <bool(false)>, "orderBy": <fieldName(null)>, "orderAscending": <bool(false)>, "offset": <number(0)>, "limit": <number(-1)> });
     */
 
     describe("db.get()", function()
@@ -304,6 +324,12 @@ describe('JsonDB', function()
             var db = populatedDB();
             var itemCount = db.get("recipes").length;
             assert.equal(itemCount, 15, "Incorrect number of items retrieved when requesting all items in table.");
+        });
+        it("should retrieve complete table when empty arguments are used", function()
+        {
+            var db = populatedDB();
+            var itemCount = db.get("recipes", false, {}).length;
+            assert.equal(itemCount, 15, "Incorrect number of items retrieved when requesting all items in table using empty arguments.");
         });
         it("should return item by a single index", function()
         {
@@ -337,8 +363,8 @@ describe('JsonDB', function()
         });
         it("should return items that match a case insensitive search", function()
         {
-            var matches = populatedDB().get("recipes", [{ "name": "Fish" }, { "name": "Soup" }]);
-            assert.equal(matches.length, 5, "Did not retrieve correct number of items using a non-exact (multi-term) match test.");
+            var matches = populatedDB().get("recipes", [{ "name": "Lemon" }, { "name": "lime" }], { "ignoreCase": true });
+            assert.equal(matches.length, 6, "Did not retrieve correct number of items using a case-insensitive (multi-term) match test.");
         });
         it("should order returned items by a column descending", function()
         {
@@ -348,33 +374,52 @@ describe('JsonDB', function()
         });
         it("should order returned items by a column ascending", function()
         {
-            var matches = populatedDB().get("recipes", false, { "orderBy": "name", "orderAscending":true });
+            var matches = populatedDB().get("recipes", false, { "orderBy": "name", "orderAscending": true });
             assert.equal(matches[matches.length-1].name, "zzzzz Doughnut", "Did not order first item in correct order for ascending sort");
             assert.equal(matches[0].name, "AAAAA Doughnut", "Did not order last item in correct order for ascending sort");   
+        });
+        it("should return items starting at an offset", function()
+        {
+            var matches = populatedDB().get("recipes", false, { "offset": 10 });
+            assert.equal(matches.length, 5, "Did not return correct number of items, when an offset has been set");
         });
         it("should return items ordered by a column descending, starting at an offset", function()
         {
             var matches = populatedDB().get("recipes", false, { "orderBy": "name", "offset":5 });
-            assert.equal(matches.length, 10, "Did not return correct number of items, when an offset has been set");
-            assert.equal(matches[0].name, "Ginger Pumpkin Soup", "Did not return correct number of items, when an offset has been set");
+            assert.equal(matches.length, 10, "Did not return correct number of items, when ordered by a name and an offset has been set");
+            assert.equal(matches[0].name, "Ginger Pumpkin Soup", "Did not return correct first item, when an offset has been set");
 
         });
         it("should return items ordered by a column ascending, starting at an offset", function()
         {
-
+            var matches = populatedDB().get("recipes", false, { "orderBy": "name", "orderAscending": true, "offset":5 });
+            assert.equal(matches.length, 10, "Did not return correct number of items, when ordered by a name ascending and an offset has been set");
+            assert.equal(matches[0].name, "Ginger Lime Salad", "Did not return correct first item, when ordered ascending and an offset has been set");
         });
         it("should return items ordered by a column descending, limited to a number", function()
         {
-
+            var matches = populatedDB().get("recipes", false, { "orderBy": "name", "offset":5, "limit":5 });
+            assert.equal(matches.length, 5, "Did not return correct number of items, when sorted by name with an offset and limit set");
+            assert.equal(matches[4].name, "Ginger Lime Salad", "Did not return correct last item, when sorted by name with an offset and limit set");
         });
-        it("should function correctly with combined search options. Including a search, caseInsensitive, orderBy, orderAscending, limit", function()
+        it("should function correctly with combined search options. Including a search, ignoreCase, orderBy, orderAscending, limit", function()
         {
-
+            var matches = populatedDB().get("recipes", { "recipeId": 1, "name": "lemon" }, { "ignoreCase": true, "orderBy": "recipeId", "orderAscending": true, "offset": 1, "limit": 4 });
+            assert.equal(matches.length, 4, "Did not return correct number of items, when get used with ignoreCase, orderBy, orderAscending, offset and limit.");
+            assert.equal(matches[0].name, "ginger lime steak", "Did not return correct first item, when get used with ignoreCase, orderBy, orderAscending, offset and limit.");
         });
         it("should match no items, when there are no matches", function()
         {
-            // Do a simple one
-            // followed by a complex one.
+            var matches = populatedDB().get("recipes", { "name":"jemon" });
+            assert.equal(matches.length, 0, "A search 'jemon' that expected to return no results has returned 1 or more results.");
+            matches = populatedDB().get("recipes", { "name":"GINGER" });
+            assert.equal(matches.length, 0, "A search 'GINGER' that expected to return no results has returned 1 or more results.");
+            matches = populatedDB().get("recipes", { "recipeId":"100" });
+            assert.equal(matches.length, 0, "A search '100' that expected to return no results has returned 1 or more results.");
+            matches = populatedDB().get("recipes", false, { "offset": 50 });
+            assert.equal(matches.length, 0, "A search with offset '50' that expected to return no results has returned 1 or more results.");
+            matches = populatedDB().get("recipes", { "name": "lemon" }, { "exactMatch":true });
+            assert.equal(matches.length, 0, "A search with an exact match of 'lemon' that expected to return no results has returned 1 or more results.");
         });
     });
 

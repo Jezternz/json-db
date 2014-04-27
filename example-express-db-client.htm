@@ -1,0 +1,557 @@
+<!HTML>
+<html>
+    <head>
+        <title>JsonDB Express Example</title>
+        <style type="text/css">
+            #refresh-button
+            {
+                background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAABA0lEQVR42mNggAItLS02fX39MCMjo92GhobFQCFmBnxAFwgMDAzOARUf1dPTk2EgAFiACrcZGxv/BtpQBeQz4VPMCHSONlDxIyD+ANQYgiypo6NjBbTZCqQOLADktABxH9DkT0D8BYinAPnxIDltbW19oAFXgGJXgWIGMA1dQMHvQMF/UPwDKFYCxAJA8dVAW/+AMFB8LUgMZKUsugTQ/4LAECsGiv9ANwhmiwHIWiC+BrMaqCERyJwKdSbIuf1AfgKK50AY7jmIpiCgwg+gAAGytQkFNSPQxEqght+gIAcFPV7V6urqUkCFR4D4PNBmPbyKVVRURIFOmAFU3AFUrIwsBwCCTljkZGJ2zAAAAABJRU5ErkJggg==');
+                background-repeat: no-repeat;
+                background-position: center center;
+                width: 18px;
+                height: 18px;
+                border: 1px solid #808080;
+                border-radius: 1px;
+                margin: 2px;
+            }
+            body
+            {
+                margin:0;
+                padding:0; 
+                background:#ddd;
+                height:100%;
+                font-family: arial;
+            }
+            #container
+            {
+                width:900px;
+                margin:0 auto;
+                background:#fff;
+                min-height:100%;
+                border-width:0 4px;
+                border-style:solid;
+                border-color:#00779C;
+            }
+            h1
+            {
+                letter-spacing: -3px;
+                padding: 20px 50px 20px 50px;
+                color: #00779C;
+            }
+            h2
+            {
+                letter-spacing: -2px;
+                color: #00A3D6;
+            }
+            input[type="text"]
+            {
+                box-sizing: border-box;
+                border: 1px solid #efefef;
+                padding: 2px 2px 2px 5px;
+                border-radius:1px;
+            }
+            table input[type="text"]
+            {                
+                width: 100%;
+            }
+            .page
+            {
+                width: 100%;
+                box-sizing: border-box;
+                padding: 10px 40px;
+            }
+            .item-table
+            {
+                border-collapse: collapse;
+                border: 1px solid gray;
+                width:100%;
+            }
+            .item-table thead th
+            {
+                color:gray;
+                font-size:12px;
+                border: 1px solid gray;
+            }
+            .item-table td
+            {
+                padding:3px 8px;
+                word-break: break-all;
+            }
+            .item-table tbody td
+            {
+                font-size:10px;
+                font-weight:bold;
+            }
+            .item-table td:first-child:last-child
+            {
+                text-align:center;
+                padding:20px;
+            }
+            .filter-title
+            {
+                font-size: 11px;
+                color: #808080;
+                font-weight: bold;
+                text-decoration: underline;
+            }
+            .filters
+            {
+                font-size: 11px;
+                color: #808080;
+                font-weight: bold;
+            }
+            .filters input, .filters select
+            {
+                margin-right:15px;
+            }
+            .filters input, .filters select, .searches input, .searches select
+            {
+                color:gray;
+                border:1px solid #F1F1F1;
+                font-size:11px;
+                vertical-align: middle;
+                margin-left: 0;
+            }
+            .filters select
+            {
+                width: 135px;
+            }
+            .filters input[type="number"]
+            {
+                width:40px;
+            }
+            .search-item
+            {
+                font-size: 11px;
+                background: #FFF;
+                border: 1px solid #BDDCF1;
+                color: #80BCE4;
+                font-family: verdana;
+                padding: 2px 4px;
+                border-radius: 3px;
+                margin-right: 5px;
+            }
+            .search-item .search-remove:hover
+            {
+                text-decoration: underline;
+                cursor: default;
+                color:red;
+            }
+            .hidden
+            {
+                display:none;
+            }
+            .ajax-method
+            {
+                width:6%;
+            }
+            .ajax-url
+            {
+                width:26%;
+            }
+            .ajax-data
+            {
+                width:34%;
+            }
+            .ajax-body
+            {
+                width:34%;
+            }
+            .field-editable
+            {
+                position:relative;
+            }
+            .field-editable:hover:after
+            {
+                position:absolute;
+                content: " ";
+                left:2px;
+                right:2px;
+                top:2px;
+                bottom:2px;
+                border: 1px solid #ddd;
+                cursor:text;
+                border-radius:2px;
+            }
+            .input-modify-row
+            {
+                position: absolute;
+                top: 0;
+                left: 0;
+                box-sizing: border-box;
+                width: 100%;
+                height: 100%;
+                background: #FFF;
+            }
+        </style>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+        <script type="text/javascript">
+            /*
+                
+                JsonDB (Local JSON storage)
+
+                https://github.com/Jezternz/json-db
+                by Joshua McLauchlan 2014
+
+            */
+        
+            $(function()
+            {
+                var app = {
+
+                    "ajaxItemIdCounter": 0,
+                    "idCounter": 0,
+
+                    "templates":
+                    {
+                        "searchItem": '<span class="search-item"><span class="search-field">{fieldName}</span> = <span class="search-value">{fieldValue}</span> (<span class="search-remove">X</span>)</span>',
+                        "recipeRow": '<tr class="recipe-row"><td class="recipe-row-id">{recipeId}</td><td class="recipe-row-name field-editable">{recipeName}</td><td class="recipe-row-ingredients field-editable">{recipeIngredients}</td><td class="recipe-row-keywords field-editable">{recipeKeywords}</td><td><input class="remove-button" type="button" value="X" /></td></tr>',
+                        "ajaxCallRow": '<tr><td class="ajax-method">{method}</td><td class="ajax-url">{url}</td><td class="ajax-data">{data}</td><td class="ajax-body">loading...</td></tr>'
+                    },
+
+                    "events":
+                    {
+                        "click #refresh-button":        "refeshRecipeList",
+                        "click #add-button":            "submitNewRecipe",
+                        "click .remove-button":         "removeRecipeRow",
+                        "change .filters *":            "refeshRecipeList",
+                        "click .search-remove":         "removeSearch",
+                        "click #button-search-add":     "addSearch",
+                        "click .field-editable":        "showModifyFieldInput"
+                    },
+
+                    init: function()
+                    {
+                        this.registerEventHandlers();
+                        this.refeshRecipeList(true);
+                        $('#input-add-recipe-id').val(this.idCounter++);
+                        $('#input-add-recipe-name').val("Mac 'N Cheese");
+                        $('#input-add-recipe-ingredients').val("Macaroni Pasta, Cheese, Milk, Flour, Salt");
+                        $('#input-add-recipe-keywords').val("Macaroni Cheese Pasta");
+                    },
+
+                    removeSearch: function(evt)
+                    {
+                        $(evt.target).closest(".search-item").remove();
+                        this.refeshRecipeList();
+                    },
+
+                    addSearch: function()
+                    {
+                        if($('#input-search-value').val().length === 0)
+                        {
+                            return;
+                        }
+                        var search = { "fieldName": $('#input-search-field').val(), "fieldValue": $('#input-search-value').val() };                        
+                        $('#active-searches').append(app.template("searchItem", search))
+                        this.refeshRecipeList();
+                    },
+
+                    registerEventHandlers: function()
+                    {
+                        // Recreate this.events to be an array of event/selector/fn
+                        this.events = Object.keys(this.events).map(function(k)
+                        { 
+                            return { "type": k.slice(0, k.indexOf(' ')), "selector": k.slice(k.indexOf(' ')+1), "fn": app.events[k] };
+                        });
+                        // Register an event handler for body
+                        this.events
+                            .map(function(ei){ return ei.type; })
+                            .filter(function(item, i, ar){ return ar.indexOf(item) === i; })
+                            .forEach(function(k){ $('body').on(k, app.onEvent.bind(app)); });
+                    },
+
+                    onEvent: function(evt)
+                    {
+                        this.events
+                            .filter(function(evtHandler){ return evt.type === evtHandler.type; })
+                            .filter(function(evtHandler){ return $(evt.target).closest(evtHandler.selector).length > 0; })
+                            .forEach(function(evtHandler){ app[evtHandler.fn].call(app, evt); });
+                    },
+
+                    generateListingUri: function()
+                    {
+                        var uri = "?";
+                        if($('#input-exact-match').is(":checked"))
+                        {
+                            uri += "exactMatch=true&";
+                        }
+                        if($('#input-ignore-case').is(":checked"))
+                        {
+                            uri += "ignoreCase=true&";
+                        }
+                        uri += "orderBy=" + $('#input-order-by').val() + "&";
+                        if($('#input-order-ascending').is(":checked"))
+                        {
+                            uri += "orderAscending=true&";
+                        }
+                        if($('#input-offset').val() !== "0" && parseInt($('#input-offset').val()))
+                        {
+                            uri += "offset=" + $('#input-offset').val() + "&";
+                        }
+                        if($('#input-limit').val() !== "-1" && parseInt($('#input-limit').val()))
+                        {
+                            uri += "limit=" + $('#input-limit').val() + "&";
+                        }
+                        var searches = $('#active-searches .search-item');
+                        if(searches.length > 0)
+                        {
+                            var searchCounter = 0;
+                            searches.each(function(i, el)
+                            {
+                                var searchField = $(el).find(".search-field").text().trim();
+                                var searchValue = $(el).find(".search-value").text().trim();
+                                if(searchField === "all fields")
+                                {
+                                    uri += ["recipeId", "recipeName", "recipeIngredients", "recipeKeywords"].map(function(searchField)
+                                        {
+                                            return "search" + (searchCounter++) + "=" + encodeURIComponent(searchField + ":" + searchValue) + "&";
+                                        }).join("");
+                                }
+                                else
+                                {
+                                    uri += "search" + (searchCounter++) + "=" + encodeURIComponent(searchField + ":" + searchValue) + "&";
+                                }
+                            });
+                            uri += "searchCount=" + searchCounter + "&";
+                        }
+                        return uri;
+                    },
+
+                    refeshRecipeList: function(noAjaxLog)
+                    {
+                        noAjaxLog = noAjaxLog === true;
+                        this.sendAjaxCall("get", { "uri": this.generateListingUri() }, noAjaxLog).done(this.refreshRecipeRows.bind(this));
+                    },
+
+                    refreshRecipeRows: function(rows)
+                    {
+                        $('.recipe-row').remove();
+                        this.addRecipeRows(rows);
+                    },
+
+                    jobsUpdated: function()
+                    {
+                        $('#no-items').toggleClass("hidden", ($('.recipe-row').length > 0));
+                        var idsAr = $('.recipe-row-id').map(function(i, el){ return parseInt($(el).text()); }).toArray();
+                        var highestIndex = idsAr.reduce(function(prev, current){ return !isNaN(current) && current > prev ? current : prev; }, 0);
+                        this.idCounter = idsAr.length === 0 ? 0 : highestIndex+1;
+                        $('#input-add-recipe-id').val(this.idCounter++);
+                    },
+
+                    addRecipeRows: function(rows)
+                    {
+                        rows.forEach(function(row)
+                        {
+                            $('#table-recipes-body').append(app.template("recipeRow", row));
+                        });
+                        this.jobsUpdated();
+                    },
+
+                    removeRecipeRow: function(evt)
+                    {
+                        var deleteId = $(evt.target).closest('.recipe-row').children().first().text().trim();
+                        this.sendAjaxCall("delete", { "uri": "/" + deleteId }).done(this.deleteRecipeRows.bind(this));
+                    },
+
+                    deleteRecipeRows: function(rows)
+                    {
+                        var ids = rows.map(function(row){ return row.recipeId+""; });
+                        this.refeshRecipeList(true);
+                        this.jobsUpdated();
+                    },
+
+                    submitNewRecipe: function()
+                    {
+                        var data = {
+                            "recipeId": $('#input-add-recipe-id').val(),
+                            "recipeName": $('#input-add-recipe-name').val(),
+                            "recipeIngredients": $('#input-add-recipe-ingredients').val(),
+                            "recipeKeywords": $('#input-add-recipe-keywords').val()
+                        };
+
+                        if(Object.keys(data).some(function(k){ return data[k].length === 0; }))
+                        {
+                            alert("Please ensure all fields have values.");
+                            return;
+                        }
+                        $('.add-recipe-row input[type="text"]').val("");
+                        $('#input-add-recipe-id').val(this.idCounter++);
+                        this.sendAjaxCall("post", { "data": data }).done(app.refeshRecipeList.bind(this, true));
+                    },
+
+                    showModifyFieldInput: function(evt)
+                    {
+                        var $target = $(evt.target);
+                        if($target.is("input"))
+                        {
+                            return;
+                        }
+                        var $field = $target.closest(".field-editable");
+                        $('<input class="input-modify-row" value="' + $field.text() + '" />')
+                            .appendTo($field)
+                            .on('blur', this.modifyFieldLostFocus.bind(this))
+                            .focus();
+                    },
+
+                    modifyFieldLostFocus: function(evt)
+                    {
+                        var $target = $(evt.target);
+                        var $field = $target.closest(".field-editable");
+                        $target.detach();
+                        var newVal = $target.val();
+                        if(newVal !== $field.text())
+                        {
+                            var id = $field.closest(".recipe-row").children().first().text();
+                            var col = $field.attr("class").replace("field-editable", "").trim();
+                            var field = ({ "recipe-row-name": "recipeName", "recipe-row-ingredients": "recipeIngredients", "recipe-row-keywords": "recipeKeywords" })[col];
+                            var data = {};
+                            data[field] = newVal;
+                            this.updateFieldValue(id, data);
+                        }
+                        $target.remove();
+                    },
+
+                    updateFieldValue: function(id, data)
+                    {
+                        this.sendAjaxCall("put", { "data": data, "uri": "/" + id }).done(this.refeshRecipeList.bind(this, true));
+                    },
+
+                    sendAjaxCall: function(method, inOpts, noAjaxLog)
+                    {
+                        inOpts = inOpts || {};
+                        var 
+                            url = "/api/recipes" + (inOpts.uri || ""), 
+                            requestBody = inOpts.data ? JSON.stringify(inOpts.data) : "";
+
+
+                        var rowId = noAjaxLog ? -1 : this.addAjaxLog(method, url, requestBody);
+                        var opts = { "type": method ,"dataType": "json" };
+                        if(requestBody)
+                        {
+                            opts.data = requestBody;
+                            opts.contentType = "application/json";
+                        }
+                        var $ajaxCall = $.ajax(url, opts);
+                        $ajaxCall
+                            .fail(function(er){ 
+                                console.log('ajax error:', arguments);
+                                app.updateAjaxLog(rowId, er);  
+                            })
+                            .done(function(d, textStatus, jqXHR){ 
+                                d = typeof d !== "undefined" ? d : ( jqXHR.status + " - " + jqXHR.statusText);
+                                app.updateAjaxLog(rowId, d); 
+                            });
+                        return $ajaxCall;
+                    },
+
+                    addAjaxLog: function(method, url, reqData)
+                    {
+                        var id = this.ajaxItemIdCounter++;
+                        var $row = $(this.template("ajaxCallRow", { "method": method, "url": url, "data": reqData }));
+                        $row.data('ajax-log-id', id)
+                        $('#ajax-table-tbody .no-ajax').remove();
+                        $('#ajax-table-tbody').prepend($row);
+                        return id;
+                    },
+
+                    updateAjaxLog: function(id, er)
+                    {
+                        var $respBody = $('#ajax-table-tbody tr').filter(function(i, el){ return $(el).data('ajax-log-id') === id; }).find(".ajax-body");
+                        if($respBody.length !== 1)
+                        {
+                            return;
+                        }
+                        er = (er && er.responseText) || er || "--Failed--";
+                        er = typeof er === "string" ? er : JSON.stringify(er);
+                        $respBody.empty().append(er);
+                    },
+
+                    safeStringRegExp: function(str)
+                    {
+                        return new RegExp(str.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), "gim");
+                    },
+
+                    template: function(templateName, obj)
+                    {
+                        var t = this.templates[templateName];
+                        Object.keys(obj).forEach(function(key)
+                        {
+                            t = t.replace(app.safeStringRegExp("{" + key + "}"), obj[key]);
+                        });
+                        return t;
+                    }
+
+                };
+                app.init.call(app);
+            });
+        </script>
+    </head>
+    <body>
+        <div id="container">
+            <h1>JsonDB with Express Example</h1>
+            <div class="page">
+                <h2>Table</h2>
+                <span class="filter-title">Filtering</span>
+                <div class="filters">
+                    <br />
+                    <label for="input-exact-match">exact match</label> <input id="input-exact-match" type="checkbox" />
+                    <label for="input-ignore-case">ignore case</label> <input id="input-ignore-case" type="checkbox" />
+                    <label for="input-order-by">order by</label> 
+                    <select id="input-order-by">
+                        <option value="recipeId">recipe id</option>
+                        <option value="recipeName">recipe name</option>
+                        <option value="recipeIngredients">recipe ingredients</option>
+                        <option value="recipeKeywords">recipe keywords</option>
+                    </select>
+                    <label for="input-order-ascending">order ascending</label> <input id="input-order-ascending" type="checkbox" />
+                    <label for="input-offset">offset</label> <input id="input-offset" type="number" value="0" />
+                    <label for="input-limit">limit</label> <input id="input-limit" type="number" value="-1" />
+                </div>
+                <div class="searches">
+                    <input id="input-search-value" type="text" placeholder="search text" />
+                    <select id="input-search-field">
+                        <option value="all fields">all fields</option>
+                        <option value="recipeId">recipe id</option>
+                        <option value="recipeName">recipe name</option>
+                        <option value="recipeIngredients">recipe ingredients</option>
+                        <option value="recipeKeywords">recipe keywords</option>
+                    </select>
+                    <input id="button-search-add" type="button" value="+" />
+                    <span id="active-searches"></span>
+                </div>
+                <br />
+                <table class="item-table">
+                    <thead>
+                        <tr>
+                            <th>recipe id</th>
+                            <th>recipe name</th>
+                            <th>recipe ingredients</th>
+                            <th>recipe keywords</th>
+                            <th><input id="refresh-button" type="button" value="" /></th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-recipes-body">
+                        <tr id="add-recipe-row">
+                            <td><input id="input-add-recipe-id" type="text" placeholder="recipe id..." /> </td>
+                            <td><input id="input-add-recipe-name" type="text" placeholder="recipe name..." /></td>
+                            <td><input id="input-add-recipe-ingredients" type="text" placeholder="recipe ingredients..." /></td>
+                            <td><input id="input-add-recipe-keywords" type="text" placeholder="recipe keywords..." /></td>
+                            <td><input id="add-button" type="button" value="+" /></td>
+                        </tr>
+                        <tr id="no-items"><td colspan="5">No recipes found...</td></tr>
+                    </tbody>
+                </table>
+                <h2>AJAX</h2>
+                <table class="item-table">
+                    <thead>
+                        <tr><th>method</th><th>url</th><th>request body</th><th>response body</th></tr>
+                    </thead>
+                    <tbody id="ajax-table-tbody">
+                        <tr class="no-ajax"><td colspan="4">No Ajax Calls yet...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>

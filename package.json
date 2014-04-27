@@ -1,7 +1,8 @@
 {
     "name":"json-db",
-    "version":"0.0.3",
-    "description":"Json-db, Json array in-memory store, operations and local disk storage.",
+    "version":"0.0.4",
+    "main":"jsondb.js",
+    "description":"Json-db, Basic Json storage in Sets with operations for adding, removing and searching. Also included a simple REST API interface extension for express.",
     "dependencies":
     {
         "mocha":"~1.18.2"
