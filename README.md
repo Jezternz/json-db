@@ -21,7 +21,7 @@ npm install express body-parser // (optional - to use express with rest api)
 db = new LocalJsonDB({ "fileName": <fileName>, "prettyJSON": <bool(false)>, "tables": { <setName>: <setUniqueFieldKey>, ... } });
 
 [itemsAffected] = db.set(<tableName>, <itemOrArray>, { "throwOnDuplicate" : <bool(false)> });
-[itemsAffected] = db.del(<tableName>, <matchObjOrArray>);
+[itemsAffected] = db.del(<tableName>, <uniqueIdOrArray>);
 [itemMatches] = db.get(<tableName>, <matchObjOrArray>, { "exactMatch": <bool(false)>, "ignoreCase": <bool(false)>, "orderBy": <fieldName(null)>, "orderAscending": <bool(false)>, "offset": <number(0)>, "limit": <number(-1)> });
 [expressAllHandler] = db.expressRouting();
 
