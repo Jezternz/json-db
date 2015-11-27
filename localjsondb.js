@@ -163,7 +163,7 @@ module.exports = function()
             {
                 Object.keys(searchObj).forEach(function(innerSearchKey)
                 {
-                    if(!searchObj[innerSearchKey] || (typeof searchObj[innerSearchKey] !== "object" && !searchObj[innerSearchKey].toString))
+                    if(typeof searchObj[innerSearchKey] === "undefined" || (typeof searchObj[innerSearchKey] !== "object" && !searchObj[innerSearchKey].toString))
                     {
                         error("Invalid search object '" + JSON.stringify(searchObj[innerSearchKey]) + "', of type '" + (typeof searchObj[innerSearchKey]) + "', expected string or object.");
                     }
