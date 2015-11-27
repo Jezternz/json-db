@@ -88,7 +88,7 @@ module.exports = function()
                 console.warn("[DB parse warning] Table '" + tableName + "' - Missing table indices array, attempting repair. Creating indices array.");
             }
             var indices = db[tableName].indices.sort();
-            var itemKeys = db[tableName].items.map(function(it){ return (it && it[tableKey]) ? it[tableKey].toString() : "-1"; }).sort();
+            var itemKeys = db[tableName].items.map(function(it){ return (it && typeof it[tableKey] !== "undefined") ? it[tableKey].toString() : "-1"; }).sort();
             if(JSON.stringify(indices) !== JSON.stringify(itemKeys))
             {
                 db[tableName].indexCounter = 0;
