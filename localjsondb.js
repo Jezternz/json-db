@@ -65,6 +65,12 @@ module.exports = function()
         }
     };
 
+    // Ensure an index is not specifically invalid
+    var validIndex = function(index)
+    {
+        return (index !== null && typeof index !== "undefined" && index !== false);
+    };
+
     var checkIndices = function(db)
     {
         for(var tableName in db)
@@ -88,13 +94,13 @@ module.exports = function()
                 console.warn("[DB parse warning] Table '" + tableName + "' - Missing table indices array, attempting repair. Creating indices array.");
             }
             var indices = db[tableName].indices.sort();
-            var itemKeys = db[tableName].items.map(function(it){ return (it && typeof it[tableKey] !== "undefined") ? it[tableKey].toString() : "-1"; }).sort();
+            var itemKeys = db[tableName].items.map(function(it){ return (it && validIndex(it[tableKey])) ? it[tableKey].toString() : "-1"; }).sort();
             if(JSON.stringify(indices) !== JSON.stringify(itemKeys))
             {
                 db[tableName].indexCounter = 0;
                 db[tableName].indices = db[tableName].items.map(function(it)
                 { 
-                    return (it && it[tableKey]) ? it[tableKey].toString() : "-1"; 
+                    return (it && validIndex(it[tableKey])) ? it[tableKey].toString() : "-1"; 
                 })
                 console.warn("[DB parse error] Table '" + tableName + "' - Missing indices for items, attempting repair. Regenerated indices using key '" + tableKey + "'");
             }
@@ -142,11 +148,11 @@ module.exports = function()
     // Ensure an array of searchObjects, also ensure every searchObject is an "object" (and convert to object from string if need be, do this using exactMatch)
     var sanatizeMatchObject = function(tableName, matchObjOrAr, opts)
     {
-        if(typeof matchObjOrAr === "undefined" || matchObjOrAr === false || matchObjOrAr === null)
+        if(!validIndex(matchObjOrAr))
         {
             return false;
         }
-        matchObjOrAr = (Array.isArray(matchObjOrAr) ? matchObjOrAr : [matchObjOrAr]).filter(function(match){ return !!match && (typeof match !== "object" || Object.keys(match).length > 0)});
+        matchObjOrAr = (Array.isArray(matchObjOrAr) ? matchObjOrAr : [matchObjOrAr]).filter(function(mo){ return validIndex(mo) && (typeof mo !== "object" || Object.keys(mo).length !== 0); });
         if(matchObjOrAr.length === 0)
         {
             return false;
@@ -163,9 +169,11 @@ module.exports = function()
             {
                 Object.keys(searchObj).forEach(function(innerSearchKey)
                 {
-                    if(typeof searchObj[innerSearchKey] === "undefined" || (typeof searchObj[innerSearchKey] !== "object" && !searchObj[innerSearchKey].toString))
+                    if(!validIndex(searchObj[innerSearchKey]))
                     {
-                        error("Invalid search object '" + JSON.stringify(searchObj[innerSearchKey]) + "', of type '" + (typeof searchObj[innerSearchKey]) + "', expected string or object.");
+                        var s;
+                        try{ s=JSON.stringify(searchObj[innerSearchKey]); }catch(er){ s = "__unknown_value__"; };
+                        error("Invalid search object '" + s + "', of type '" + (typeof searchObj[innerSearchKey]) + "', expected string or object.");
                     }
                     else
                     {
@@ -192,7 +200,7 @@ module.exports = function()
         // Update & Add
         itemOrItems.forEach(function(newItem)
         {
-            if(typeof newItem[keyName] === "undefined")
+            if(!validIndex(newItem[keyName]))
             {
                 // Find a new Id
                 do
@@ -278,7 +286,7 @@ module.exports = function()
         {
             matchingItems = offsetAndLimitArrayBy(matchingItems, opts.offset, opts.limit);
         }
-        return copy(matchingItems);
+        return opts.hardCopy ? copy(matchingItems) : matchingItems;
     };
 
     var removeItems = function(tableName, matchObjOrAr)
@@ -423,7 +431,7 @@ module.exports = function()
         return addedItems;
     }
 
-    // db.get(<tableName>, <matchObjOrArray>, { "exactMatch": <bool(false)>, "ignoreCase": <bool(false)>, "orderBy": <fieldName(null)>, "orderAscending": <bool(false)>, "offset": <number(0)>, "limit": <number(-1)> });
+    // db.get(<tableName>, <matchObjOrArray>, { "exactMatch": <bool(false)>, "ignoreCase": <bool(false)>, "orderBy": <fieldName(null)>, "orderAscending": <bool(false)>, "offset": <number(0)>, "limit": <number(-1)>, "hardCopy": <bool(true)> });
     this.get = function(tableName, matchObjOrAr, opts)
     {
         if(arguments.length < 1)
@@ -443,6 +451,7 @@ module.exports = function()
         opts.orderBy = typeof opts.orderBy === "string" ? opts.orderBy : null;
         opts.offset = typeof opts.offset === "number" ? opts.offset : 0;
         opts.limit = typeof opts.limit === "number" ? opts.limit : -1;
+        opts.hardCopy = typeof opts.hardCopy === "boolean" ? opts.hardCopy : true;
 
         // if supplying a bunch of indexes, search for exact matches.
         if(typeof matchObjOrAr === "string" || (Array.isArray(matchObjOrAr) && typeof matchObjOrAr[0] === "string"))
