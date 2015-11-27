@@ -146,7 +146,11 @@ module.exports = function()
         {
             return false;
         }
-        matchObjOrAr = Array.isArray(matchObjOrAr) ? matchObjOrAr : [matchObjOrAr];
+        matchObjOrAr = (Array.isArray(matchObjOrAr) ? matchObjOrAr : [matchObjOrAr]).filter(function(match){ return !!match && (typeof match !== "object" || Object.keys(match).length > 0)});
+        if(matchObjOrAr.length === 0)
+        {
+            return false;
+        }
         if(matchObjOrAr.some(function(searchObj){ return typeof searchObj === "undefined"; }))
         {
             error("Invalid search object '" + JSON.stringify(searchObj) + "', of type '" + (typeof searchObj) + "', expected string or object.");
@@ -159,7 +163,7 @@ module.exports = function()
             {
                 Object.keys(searchObj).forEach(function(innerSearchKey)
                 {
-                    if(typeof searchObj[innerSearchKey] === "object" || !searchObj[innerSearchKey].toString)
+                    if(!searchObj[innerSearchKey] || (typeof searchObj[innerSearchKey] !== "object" && !searchObj[innerSearchKey].toString))
                     {
                         error("Invalid search object '" + JSON.stringify(searchObj[innerSearchKey]) + "', of type '" + (typeof searchObj[innerSearchKey]) + "', expected string or object.");
                     }
