@@ -54,4 +54,5 @@ Then browse to localhost:8080:
 0.0.2 - Adding test cases.  
 0.0.3 - Added many more test cases, updated API and optional search params.  
 0.0.4 - Updated to include a basic Express routing method.  
-0.1.0 - Minor changes, ready for npm publish.  
+0.1.0 - Minor changes, ready for npm publish.   
+0.1.1 - Minor changes, fixed issue with auto-increment of index when it is not provided. 
