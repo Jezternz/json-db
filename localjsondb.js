@@ -209,9 +209,10 @@ module.exports = function()
                 }
                 while(inMemoryDB[tableName].indices.indexOf(newItem[keyName].toString()) !== -1);
             }
-            if(inMemoryDB[tableName].indices.indexOf(newItem[keyName].toString()) !== -1)
+            var index = newItem[keyName].toString().toLowerCase();
+            if(inMemoryDB[tableName].indices.indexOf(index) !== -1)
             {
-                var match = inMemoryDB[tableName].items.filter(function(row){ return row[keyName] === newItem[keyName]; }).pop();
+                var match = inMemoryDB[tableName].items.filter(function(row){ return row[keyName].toString() === index; }).pop();
                 Object.keys(newItem).forEach(function(newItemKey)
                 {
                     match[newItemKey] = newItem[newItemKey];
