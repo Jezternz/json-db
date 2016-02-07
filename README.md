@@ -1,5 +1,6 @@
 LocalJsonDB [![Build Status](https://travis-ci.org/Jezternz/localjsondb.svg?branch=master)](https://travis-ci.org/Jezternz/localjsondb)
 =======
+version 0.1.2
 
 A very simple local json file database for Node.js that can be used for prototyping and small projects. 
 
@@ -11,6 +12,7 @@ Tables are essentially just lists of JSON objects where rows are schemaless and 
 
 A helper method is also provided (.expressRouting()) that can be used as express middleware, this enables a simple rest api service with get, post, put and delete operations corresponding to the methods previously mentioned. Items are accessed at a configured endpoint eg 'api/[tableName]/' or 'api/[tableName]/[uniqueId]/'. Items in the db can be accessed in batch by using the body of a post or put.
 ### Installation
+npm package: https://www.npmjs.com/package/localjsondb
 ```
 npm install localjsondb
 npm install express body-parser // (optional - to use express with rest api)
@@ -56,3 +58,4 @@ Then browse to localhost:8080:
 0.0.4 - Updated to include a basic Express routing method.  
 0.1.0 - Minor changes, ready for npm publish.   
 0.1.1 - Minor changes, fixed issue with auto-increment of index when it is not provided. 
+0.1.2 - Minor changes, fixed issue when using integers vs strings as table indices. 
