@@ -1,6 +1,5 @@
 LocalJsonDB [![Build Status](https://travis-ci.org/Jezternz/localjsondb.svg?branch=master)](https://travis-ci.org/Jezternz/localjsondb)
 =======
-version 0.1.2
 
 A very simple local json file database for Node.js that can be used for prototyping and small projects. 
 
