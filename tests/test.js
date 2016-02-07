@@ -195,7 +195,7 @@ describe('LocalJsonDB', function()
             var itemsOut = db.get("randomTable");
             assert.equal(itemsOut.length, 3, "Returned incorrect number of items");
             assert.equal(itemsOut.filter(function(item){ return item.property1 === "A"; }).length, 1, "Did not return updated row");
-            db.set("randomTable", { "randomTableId": 1, "property2": "B" });
+            db.set("randomTable", { "randomTableId": "1", "property2": "B" });
             var itemsOut2 = db.get("randomTable");            
             assert.equal(itemsOut2.filter(function(item){ return item.property1 === "A" && item.property2 === "B"; }).length, 1, "Did not return updated row, when 2 seperate set calls set two different properties.");
         });
