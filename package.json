@@ -1,27 +1,29 @@
 {
-    "name":"localjsondb",
-    "version":"0.1.2",
-    "main":"localjsondb.js",
-    "description":"A very simple local json file database for Node.js that can be used for prototyping and small projects.",
-    "keywords":["json", "local", "storage", "database", "rest"],
-    "homepage":"https://github.com/Jezternz/localjsondb",
-    "bugs":"https://github.com/Jezternz/localjsondb/issues",
-    "author":
-    { 
-        "name" : "Joshua McLauchlan",
-        "email" : "jezternz@gmail.com"
-    },
-    "repository":
-    { 
-        "type" : "git",
-        "url" : "https://github.com/Jezternz/localjsondb.git"
-    },
-    "dependencies":
-    {
-        "mocha":"~1.18.2"
-    },
-    "scripts": 
-    {
-        "test": "mocha ./tests/test.js -R spec"
-    }
+  "name": "localjsondb",
+  "version": "0.1.3",
+  "main": "localjsondb.js",
+  "description": "A very simple local json file database for Node.js that can be used for prototyping and small projects.",
+  "keywords": [
+    "json",
+    "local",
+    "storage",
+    "database",
+    "rest"
+  ],
+  "homepage": "https://github.com/Jezternz/localjsondb",
+  "bugs": "https://github.com/Jezternz/localjsondb/issues",
+  "author": {
+    "name": "Joshua McLauchlan",
+    "email": "jezternz@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Jezternz/localjsondb.git"
+  },
+  "dependencies": {
+    "mocha": "~1.18.2"
+  },
+  "scripts": {
+    "test": "mocha ./tests/test.js -R spec"
+  }
 }
