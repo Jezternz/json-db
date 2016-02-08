@@ -23,7 +23,7 @@ db = new LocalJsonDB({ "fileName": <fileName>, "prettyJSON": <bool(false)>, "tab
 
 [itemsAffected] = db.set(<tableName>, <itemOrArray>, { "throwOnDuplicate" : <bool(false)> });
 [itemsAffected] = db.del(<tableName>, <uniqueIdOrArray>);
-[itemMatches] = db.get(<tableName>, <matchObjOrArray>, { "exactMatch": <bool(false)>, "ignoreCase": <bool(false)>, "orderBy": <fieldName(null)>, "orderAscending": <bool(false)>, "offset": <number(0)>, "limit": <number(-1)> });
+[itemMatches] = db.get(<tableName>, <matchObjOrArray>, { "exactMatch": <bool(false)>, "ignoreCase": <bool(false)>, "orderBy": <fieldNameOrArray(null)>, "orderAscending": <boolOrArray(false)>, "offset": <number(0)>, "limit": <number(-1)> });
 [expressAllHandler] = db.expressRouting();
 
 where <matchObjOrArray> is one of:
