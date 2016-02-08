@@ -229,15 +229,23 @@ module.exports = function()
         return copy(arrayOut);
     }
 
-    var orderArrayBy = function(orderArray, orderByField, orderAsc)
+    var orderArrayBy = function(orderArray, orderByFields, orderAscs)
     {
-        if(orderAsc)
+        var 
+            x = orderAscs.map(function(oa){ return oa ? 1 : -1; }), 
+            y = orderAscs.map(function(oa){ return oa ? -1 : 1; });
+        if(orderByFields.length === 1)
         {
-            return orderArray.sort(function(a,b){ return a[orderByField] > b[orderByField] ? 1 : -1; });
+            return orderArray.sort(function(a,b){ return a[orderByFields[0]] > b[orderByFields[0]] ? x[0] : y[0]; });
         }
         else
         {
-            return orderArray.sort(function(a, b){ return a[orderByField] > b[orderByField] ? -1 : 1; });
+            var i, total=orderByFields.length;
+            return orderArray.sort(function(a,b)
+            { 
+                for(i=0;i<total;i++)if(a[orderByFields[i]] !== b[orderByFields[i]])break;
+                return a[orderByFields[i]] > b[orderByFields[i]] ? x[i] : y[i];
+            });
         }
     };
 
@@ -279,7 +287,7 @@ module.exports = function()
                 }
             }
         }
-        if(typeof opts.orderBy === "string" && opts.orderBy.length > 0)
+        if(opts.orderBy.length > 0)
         {
             matchingItems = orderArrayBy(matchingItems, opts.orderBy, opts.orderAscending);
         }
@@ -448,11 +456,26 @@ module.exports = function()
         opts = opts || {};
         opts.exactMatch = typeof opts.exactMatch === "boolean" ? opts.exactMatch : false;
         opts.ignoreCase = typeof opts.ignoreCase === "boolean" ? opts.ignoreCase : false;
-        opts.orderAscending = typeof opts.orderAscending === "boolean" ? opts.orderAscending : false;
-        opts.orderBy = typeof opts.orderBy === "string" ? opts.orderBy : null;
+        opts.orderBy = (
+            typeof opts.orderBy === "string" ? [opts.orderBy] : 
+            (Array.isArray(opts.orderBy) && opts.orderBy.every(function(ob){ return typeof ob === "string"; })) ? opts.orderBy : 
+            []);
         opts.offset = typeof opts.offset === "number" ? opts.offset : 0;
         opts.limit = typeof opts.limit === "number" ? opts.limit : -1;
         opts.hardCopy = typeof opts.hardCopy === "boolean" ? opts.hardCopy : true;
+
+        // Ensure orderAscending array is at least same length as orderBy
+        var oldOrderAscending = opts.orderAscending;
+        opts.orderAscending = [];
+        for(var i=0;i<opts.orderBy.length;i++)
+        {
+            // order defined as array, use array values or desc for missing ones.
+            if(Array.isArray(oldOrderAscending))opts.orderAscending[i] = typeof oldOrderAscending[i] === "boolean" ? oldOrderAscending[i] : false;
+            // order defined as single boolean, apply to all orderbys
+            else if(typeof oldOrderAscending === "boolean")opts.orderAscending[i] = oldOrderAscending;
+            // No order defined, default to desc
+            else opts.orderAscending[i] = false;
+        }
 
         // if supplying a bunch of indexes, search for exact matches.
         if(typeof matchObjOrAr === "string" || (Array.isArray(matchObjOrAr) && typeof matchObjOrAr[0] === "string"))
