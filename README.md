@@ -57,4 +57,5 @@ Then browse to localhost:8080:
 0.0.4 - Updated to include a basic Express routing method.  
 0.1.0 - Minor changes, ready for npm publish.   
 0.1.1 - Minor changes, fixed issue with auto-increment of index when it is not provided.  
-0.1.2 - Minor changes, fixed issue when using integers vs strings as table indices. 
+0.1.2 - Minor changes, fixed issue when using integers vs strings as table indices.   
+0.1.3 - Minor changes, Added ability to specify multiple orderBy and orderByAsc values in an array[string] and array[boolean] format. 
